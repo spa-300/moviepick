@@ -18,18 +18,48 @@ repositories {
 }
 
 dependencies {
+	// 웹·JPA·검증
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	compileOnly 'org.projectlombok:lombok'
+
+	// 인증·인가 (인증 파트: SecurityConfig와 같은 PR에서 반영)
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+
+	// JWT (jjwt는 BOM 관리 대상이 아니라 버전을 직접 지정, 최신 안정 버전 확인 필요)
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+	// 영화 수집·동기화 Job (영화 파트)
+	implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+	// Refresh Token을 Redis에 저장하기로 한 경우에만
+	// implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// 마이그레이션 도구를 쓰기로 한 경우에만 (MySQL은 flyway-mysql 필요)
+	// implementation 'org.springframework.boot:spring-boot-starter-flyway'
+	// implementation 'org.flywaydb:flyway-mysql'
+
+	// 선택
+	// implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'   // Boot 4용 3.x 최신 버전 확인
+	// implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// DB·유틸
 	runtimeOnly 'com.mysql:mysql-connector-j'
+	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// 테스트
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+	testRuntimeOnly 'com.h2database:h2'
 	testCompileOnly 'org.projectlombok:lombok'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
