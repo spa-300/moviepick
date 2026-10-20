@@ -47,15 +47,14 @@ public class Post extends BaseEntity {
     @Column(nullable = false, length = 20)
     private PostStatus status = PostStatus.VISIBLE;
 
+    // 게시글 생성
     public static Post create(Member member, String title, String content) {
         if (member == null) {
             throw new IllegalArgumentException("게시글 작성자는 필수입니다.");
         }
-
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("게시글 제목은 필수입니다.");
         }
-
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("게시글 내용은 필수입니다.");
         }
@@ -69,5 +68,23 @@ public class Post extends BaseEntity {
         post.status = PostStatus.VISIBLE;
 
         return post;
+    }
+
+    // 게시글 수정
+    public void update(String title, String content) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("게시글 제목은 필수입니다.");
+        }
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("게시글 내용은 필수입니다.");
+        }
+
+        this.title = title;
+        this.content = content;
+    }
+
+    // 게시글 삭제 (논리 삭제)
+    public void delete() {
+        this.status = PostStatus.DELETED;
     }
 }
