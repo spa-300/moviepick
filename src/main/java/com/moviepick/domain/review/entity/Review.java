@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
-@DynamicUpdate   // 추가: 수정 시 바뀐 컬럼만 UPDATE (likeCount를 오래된 값으로 덮어쓰는 것 방지)
+@DynamicUpdate   // 수정 시 바뀐 컬럼만 UPDATE (likeCount를 오래된 값으로 덮어쓰는 것 방지).
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
@@ -27,12 +27,9 @@ import org.hibernate.annotations.DynamicUpdate;
         })
 public class Review extends BaseEntity {
 
-    // private static → public static 으로 변경 (Service에서 먼저 호출)
-    public static void validateRating(BigDecimal rating) {
-        private static final BigDecimal MIN_RATING = new BigDecimal("0.5");
-        private static final BigDecimal MAX_RATING = new BigDecimal("5.0");
-        private static final BigDecimal TWO = new BigDecimal("2");
-    }
+    private static final BigDecimal MIN_RATING = new BigDecimal("0.5");
+    private static final BigDecimal MAX_RATING = new BigDecimal("5.0");
+    private static final BigDecimal TWO = new BigDecimal("2");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -139,8 +136,8 @@ public class Review extends BaseEntity {
         }
     }
 
-    /** 0.5~5.0, 0.5 단위만 허용 */
-    private static void validateRating(BigDecimal rating) {
+    /** 0.5~5.0, 0.5 단위만 허용. Service에서 먼저 호출하므로 public static */
+    public static void validateRating(BigDecimal rating) {
         boolean outOfRange = rating == null
                 || rating.compareTo(MIN_RATING) < 0
                 || rating.compareTo(MAX_RATING) > 0;
