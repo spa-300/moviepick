@@ -36,7 +36,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 
 	// Refresh Token을 Redis에 저장하기로 한 경우에만
-	// implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	 implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// 마이그레이션 도구를 쓰기로 한 경우에만 (MySQL은 flyway-mysql 필요)
 	// implementation 'org.springframework.boot:spring-boot-starter-flyway'
