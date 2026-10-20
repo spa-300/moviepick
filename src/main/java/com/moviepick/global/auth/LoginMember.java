@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LoginMember {
+    boolean required() default true;   // false면 비로그인 허용 (memberId가 null로 주입됨)
 }
