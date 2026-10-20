@@ -83,8 +83,20 @@ public class Post extends BaseEntity {
         this.content = content;
     }
 
-    // 게시글 삭제 (논리 삭제)
+    // 게시글 논리 삭제
     public void delete() {
         this.status = PostStatus.DELETED;
+    }
+
+    // 댓글 수 증가
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
+
+    // 댓글 수 감소
+    public void decreaseCommentCount() {
+        if (this.commentCount > 0) {
+            this.commentCount--;
+        }
     }
 }
