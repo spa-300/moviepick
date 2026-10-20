@@ -58,4 +58,9 @@ public class MemberService {
 
         member.withdraw();
     }
+
+    public Member getMember(Long memberId) {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
 }

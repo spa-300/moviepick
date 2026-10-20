@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
-@DynamicUpdate   // 수정 시 바뀐 컬럼만 UPDATE (likeCount를 오래된 값으로 덮어쓰는 것 방지)
+@DynamicUpdate   // 수정 시 바뀐 컬럼만 UPDATE (likeCount를 오래된 값으로 덮어쓰는 것 방지).
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(
