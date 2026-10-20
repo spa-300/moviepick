@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.moviepick.domain.community.dto.request.CommentUpdateRequest;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import java.util.List;
 
@@ -62,5 +64,17 @@ public class CommentController {
         commentService.deleteComment(memberId, postId, commentId);
 
         return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    @PutMapping("/{commentId}")
+    public ResponseEntity<CommentCreateResponse> updateComment(
+            @LoginMember Long memberId,
+            @PathVariable Long postId,
+            @PathVariable Long commentId,
+            @Valid @RequestBody CommentUpdateRequest request
+    ) {
+        return ResponseEntity.ok(
+                commentService.updateComment(memberId, postId, commentId, request)
+        );
     }
 }

@@ -15,6 +15,7 @@ import com.moviepick.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.moviepick.domain.community.dto.request.CommentUpdateRequest;
 
 import java.util.List;
 
@@ -91,5 +92,29 @@ public class CommentService {
 
         // 게시글 댓글 수 감소
         comment.getPost().decreaseCommentCount();
+    }
+
+    // 댓글 수정
+    @Transactional
+    public CommentCreateResponse updateComment(
+            Long memberId,
+            Long postId,
+            Long commentId,
+            CommentUpdateRequest request
+    ) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
+
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new IllegalArgumentException("해당 게시글의 댓글이 아닙니다.");
+        }
+
+        if (!comment.getMember().getId().equals(memberId)) {
+            throw new IllegalArgumentException("댓글 작성자만 수정할 수 있습니다.");
+        }
+
+        comment.update(request.content());
+
+        return CommentCreateResponse.from(comment);
     }
 }

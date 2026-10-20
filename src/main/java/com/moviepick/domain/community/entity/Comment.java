@@ -70,4 +70,17 @@ public class Comment extends BaseEntity {
     public void delete() {
         this.status = CommentStatus.DELETED;
     }
+
+    // 댓글 수정
+    public void update(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("댓글 내용은 필수입니다.");
+        }
+
+        if (this.status != CommentStatus.VISIBLE) {
+            throw new IllegalArgumentException("삭제된 댓글은 수정할 수 없습니다.");
+        }
+
+        this.content = content;
+    }
 }
