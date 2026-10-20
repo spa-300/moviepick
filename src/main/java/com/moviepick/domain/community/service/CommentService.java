@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.service;
 
 import com.moviepick.domain.community.dto.request.CommentCreateRequest;
@@ -55,30 +56,40 @@ public class CommentService {
         postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        List<Comment> comments =
-                commentRepository.findAllByPostIdOrderByCreatedAtAsc(postId);
-
-        return comments.stream()
-                .filter(comment -> comment.getStatus() == CommentStatus.VISIBLE)
+        return commentRepository
+                .findAllByPostIdAndStatusOrderByCreatedAtAsc(
+                        postId,
+                        CommentStatus.VISIBLE
+                )
+                .stream()
                 .map(CommentListResponse::from)
                 .toList();
     }
 
     // 댓글 삭제 (논리 삭제)
     @Transactional
-    public void deleteComment(Long memberId, Long commentId) {
+    public void deleteComment(Long memberId, Long postId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new IllegalArgumentException("댓글을 찾을 수 없습니다."));
 
+        // URL의 게시글과 댓글이 실제로 속한 게시글이 같은지 확인
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new IllegalArgumentException("해당 게시글의 댓글이 아닙니다.");
+        }
+
+        // 댓글 작성자 본인인지 확인
         if (!comment.getMember().getId().equals(memberId)) {
             throw new IllegalArgumentException("댓글 작성자만 삭제할 수 있습니다.");
         }
 
+        // 이미 삭제된 댓글인지 확인
         if (comment.getStatus() == CommentStatus.DELETED) {
             throw new IllegalArgumentException("이미 삭제된 댓글입니다.");
         }
 
         comment.delete();
+
+        // 게시글 댓글 수 감소
         comment.getPost().decreaseCommentCount();
     }
 }

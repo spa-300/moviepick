@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.service;
 
 import com.moviepick.domain.community.dto.request.PostCreateRequest;
@@ -52,10 +53,14 @@ public class PostService {
     }
 
     // 게시글 상세 조회
+    @Transactional
     public PostDetailResponse getPost(Long postId) {
         Post post = postRepository
                 .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        // 조회수 증가
+        post.increaseViewCount();
 
         return PostDetailResponse.from(post);
     }
