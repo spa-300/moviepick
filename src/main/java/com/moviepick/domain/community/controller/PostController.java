@@ -25,7 +25,8 @@ public class PostController {
             @LoginMember Long memberId,
             @Valid @RequestBody PostCreateRequest request
     ) {
-        PostCreateResponse response = postService.create(request);
+        PostCreateResponse response =
+                postService.create(memberId, request);
 
         return ResponseEntity
                 .status(201)

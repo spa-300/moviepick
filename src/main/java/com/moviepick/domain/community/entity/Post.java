@@ -1,14 +1,17 @@
-
 package com.moviepick.domain.community.entity;
 
+import com.moviepick.domain.member.entity.Member;
 import com.moviepick.global.entity.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -23,6 +26,10 @@ public class Post extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
 
     @Column(nullable = false, length = 100)
     private String title;
@@ -40,7 +47,11 @@ public class Post extends BaseEntity {
     @Column(nullable = false, length = 20)
     private PostStatus status = PostStatus.VISIBLE;
 
-    public static Post create(String title, String content) {
+    public static Post create(Member member, String title, String content) {
+        if (member == null) {
+            throw new IllegalArgumentException("게시글 작성자는 필수입니다.");
+        }
+
         if (title == null || title.isBlank()) {
             throw new IllegalArgumentException("게시글 제목은 필수입니다.");
         }
@@ -50,6 +61,7 @@ public class Post extends BaseEntity {
         }
 
         Post post = new Post();
+        post.member = member;
         post.title = title;
         post.content = content;
         post.viewCount = 0;
