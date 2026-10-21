@@ -1,4 +1,3 @@
-
 package com.moviepick.global.auth;
 
 import lombok.RequiredArgsConstructor;
@@ -71,4 +70,19 @@ public class RefreshTokenService {
             );
         }
     }
+
+    // 회원별 현재 인증 버전 조회
+    public long getAuthVersion(Long memberId) {
+        String key = "auth:version:" + memberId;
+        String version = redisTemplate.opsForValue().get(key);
+
+        return version == null ? 0L : Long.parseLong(version);
+    }
+
+    // 해당 회원의 기존 Refresh Token 전체 무효화
+    public void invalidateAll(Long memberId) {
+        String key = "auth:version:" + memberId;
+        redisTemplate.opsForValue().increment(key);
+    }
+
 }
