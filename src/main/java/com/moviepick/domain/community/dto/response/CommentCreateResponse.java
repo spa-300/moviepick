@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.dto.response;
 
 import com.moviepick.domain.community.entity.Comment;
@@ -5,10 +6,9 @@ import com.moviepick.domain.community.entity.Comment;
 import java.time.LocalDateTime;
 
 public record CommentCreateResponse(
-        Long id,
+        Long commentId,
         Long postId,
         String content,
-        String nickname,
         LocalDateTime createdAt
 ) {
     public static CommentCreateResponse from(Comment comment) {
@@ -16,7 +16,6 @@ public record CommentCreateResponse(
                 comment.getId(),
                 comment.getPost().getId(),
                 comment.getContent(),
-                comment.getMember().getNickname(),
                 comment.getCreatedAt()
         );
     }

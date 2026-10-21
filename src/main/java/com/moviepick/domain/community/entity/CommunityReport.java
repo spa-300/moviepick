@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.entity;
 
 import com.moviepick.domain.member.entity.Member;
@@ -38,8 +39,11 @@ public class CommunityReport extends BaseEntity {
     @Column(name = "target_id", nullable = false)
     private Long targetId;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 20)
     private String reason;
+
+    @Column(length = 200)
+    private String detail;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -49,19 +53,22 @@ public class CommunityReport extends BaseEntity {
             Member reporter,
             ReportTargetType targetType,
             Long targetId,
-            String reason
+            String reason,
+            String detail
     ) {
         this.reporter = reporter;
         this.targetType = targetType;
         this.targetId = targetId;
         this.reason = reason;
+        this.detail = detail;
     }
 
     public static CommunityReport create(
             Member reporter,
             ReportTargetType targetType,
             Long targetId,
-            String reason
+            String reason,
+            String detail
     ) {
         if (reporter == null) {
             throw new IllegalArgumentException("신고자는 필수입니다.");
@@ -76,18 +83,32 @@ public class CommunityReport extends BaseEntity {
         }
 
         if (reason == null || reason.isBlank()) {
-            throw new IllegalArgumentException("신고 사유는 필수입니다.");
+            throw new IllegalArgumentException("신고 유형은 필수입니다.");
         }
 
-        if (reason.length() > 500) {
-            throw new IllegalArgumentException("신고 사유는 500자 이하여야 합니다.");
+        if (detail != null && detail.length() > 200) {
+            throw new IllegalArgumentException("상세 사유는 200자 이하여야 합니다.");
+        }
+
+        thisReasonValidation(reason);
+
+        if ("ETC".equals(reason) && (detail == null || detail.isBlank())) {
+            throw new IllegalArgumentException("기타 신고는 상세 사유가 필수입니다.");
         }
 
         return new CommunityReport(
                 reporter,
                 targetType,
                 targetId,
-                reason.trim()
+                reason.trim(),
+                detail == null ? null : detail.trim()
         );
+    }
+
+    private static void thisReasonValidation(String reason) {
+        if (!java.util.Set.of("SPAM", "ABUSE", "SPOILER", "ADULT", "ETC")
+                .contains(reason)) {
+            throw new IllegalArgumentException("올바르지 않은 신고 유형입니다.");
+        }
     }
 }

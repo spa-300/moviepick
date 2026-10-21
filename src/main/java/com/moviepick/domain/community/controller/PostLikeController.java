@@ -1,5 +1,7 @@
+
 package com.moviepick.domain.community.controller;
 
+import com.moviepick.domain.community.dto.response.PostLikeResponse;
 import com.moviepick.domain.community.service.PostLikeService;
 import com.moviepick.global.auth.LoginMember;
 import com.moviepick.global.response.ApiResponse;
@@ -21,25 +23,25 @@ public class PostLikeController {
 
     // 게시글 좋아요 등록
     @PostMapping
-    public ResponseEntity<ApiResponse<Void>> addLike(
+    public ResponseEntity<ApiResponse<PostLikeResponse>> addLike(
             @LoginMember Long memberId,
             @PathVariable Long postId
     ) {
-        postLikeService.addLike(memberId, postId);
+        PostLikeResponse response = postLikeService.addLike(memberId, postId);
 
         return ResponseEntity.status(201)
-                .body(ApiResponse.created(null));
+                .body(ApiResponse.created(response));
     }
 
     // 게시글 좋아요 취소
     @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> removeLike(
+    public ResponseEntity<ApiResponse<PostLikeResponse>> removeLike(
             @LoginMember Long memberId,
             @PathVariable Long postId
     ) {
-        postLikeService.removeLike(memberId, postId);
+        PostLikeResponse response = postLikeService.removeLike(memberId, postId);
 
-        return ResponseEntity.ok(ApiResponse.ok());
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
     // 게시글 좋아요 수 조회
