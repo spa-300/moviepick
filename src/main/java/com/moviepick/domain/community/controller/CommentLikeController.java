@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/community/posts/{postId}/comments/{commentId}/likes")
+@RequestMapping("/api/community/comments/{commentId}/likes")
 @RequiredArgsConstructor
 public class CommentLikeController {
 
@@ -24,10 +24,9 @@ public class CommentLikeController {
     @PostMapping
     public ResponseEntity<ApiResponse<Void>> addLike(
             @LoginMember Long memberId,
-            @PathVariable Long postId,
             @PathVariable Long commentId
     ) {
-        commentLikeService.addLike(memberId, postId, commentId);
+        commentLikeService.addLike(memberId, commentId);
 
         return ResponseEntity.status(201)
                 .body(ApiResponse.created(null));
@@ -37,10 +36,9 @@ public class CommentLikeController {
     @DeleteMapping
     public ResponseEntity<ApiResponse<Void>> removeLike(
             @LoginMember Long memberId,
-            @PathVariable Long postId,
             @PathVariable Long commentId
     ) {
-        commentLikeService.removeLike(memberId, postId, commentId);
+        commentLikeService.removeLike(memberId, commentId);
 
         return ResponseEntity.ok(ApiResponse.ok());
     }
@@ -48,10 +46,9 @@ public class CommentLikeController {
     // 댓글 좋아요 수 조회
     @GetMapping
     public ResponseEntity<ApiResponse<Long>> getLikeCount(
-            @PathVariable Long postId,
             @PathVariable Long commentId
     ) {
-        long count = commentLikeService.getLikeCount(postId, commentId);
+        long count = commentLikeService.getLikeCount(commentId);
 
         return ResponseEntity.ok(ApiResponse.ok(count));
     }

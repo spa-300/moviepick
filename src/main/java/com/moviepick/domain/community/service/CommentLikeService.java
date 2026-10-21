@@ -24,8 +24,8 @@ public class CommentLikeService {
 
     // 댓글 좋아요 등록
     @Transactional
-    public void addLike(Long memberId, Long postId, Long commentId) {
-        Comment comment = findVisibleComment(postId, commentId);
+    public void addLike(Long memberId, Long commentId) {
+        Comment comment = findVisibleComment(commentId);
 
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
@@ -41,11 +41,11 @@ public class CommentLikeService {
 
     // 댓글 좋아요 취소
     @Transactional
-    public void removeLike(Long memberId, Long postId, Long commentId) {
-        Comment comment = findVisibleComment(postId, commentId);
+    public void removeLike(Long memberId, Long commentId) {
+        findVisibleComment(commentId);
 
         CommentLike commentLike = commentLikeRepository
-                .findByCommentIdAndMemberId(comment.getId(), memberId)
+                .findByCommentIdAndMemberId(commentId, memberId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("등록된 좋아요가 없습니다."));
 
@@ -53,21 +53,17 @@ public class CommentLikeService {
     }
 
     // 댓글 좋아요 수 조회
-    public long getLikeCount(Long postId, Long commentId) {
-        Comment comment = findVisibleComment(postId, commentId);
+    public long getLikeCount(Long commentId) {
+        Comment comment = findVisibleComment(commentId);
 
         return commentLikeRepository.countByCommentId(comment.getId());
     }
 
-    // 게시글과 댓글의 관계 및 공개 상태 확인
-    private Comment findVisibleComment(Long postId, Long commentId) {
+    // 댓글 및 소속 게시글의 공개 상태 확인
+    private Comment findVisibleComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("댓글을 찾을 수 없습니다."));
-
-        if (!comment.getPost().getId().equals(postId)) {
-            throw new IllegalArgumentException("해당 게시글의 댓글이 아닙니다.");
-        }
 
         if (comment.getStatus() != CommentStatus.VISIBLE) {
             throw new IllegalArgumentException("삭제된 댓글에는 접근할 수 없습니다.");
