@@ -66,4 +66,59 @@ public class AuthController {
                         ApiResponse.ok(result.loginResponse())
                 );
     }
+
+    // 로그아웃 API
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(
+            @CookieValue(
+                    value = "refreshToken",
+                    required = false
+            ) String refreshToken
+    ) {
+
+        // 1. Redis에 저장된 Refresh Token 삭제
+        authService.logout(refreshToken);
+
+        // 2. 브라우저의 Refresh Token 쿠키 만료
+        ResponseCookie deleteCookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/api/auth")
+                .maxAge(0)
+                .build();
+
+        // 3. 쿠키 삭제 응답 반환
+        return ResponseEntity
+                .ok()
+                .header(
+                        HttpHeaders.SET_COOKIE,
+                        deleteCookie.toString()
+                )
+                .body(ApiResponse.ok());
+    }
+
+    // Access Token 재발급 API
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<TokenRefreshResponse>> refresh(
+            @CookieValue(
+                    value = "refreshToken",
+                    required = false
+            ) String refreshToken
+    ) {
+
+        // 1. Refresh Token 검증 및 새 Access Token 발급
+        String accessToken = authService.refreshAccessToken(refreshToken);
+
+        // 2. 응답 DTO 생성
+        TokenRefreshResponse response =
+                new TokenRefreshResponse(accessToken);
+
+        // 3. JSON 응답 반환
+        return ResponseEntity.ok(
+                ApiResponse.ok(response)
+        );
+    }
+
 }

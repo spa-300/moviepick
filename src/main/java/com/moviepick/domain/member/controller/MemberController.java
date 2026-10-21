@@ -5,11 +5,11 @@ import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.global.auth.LoginMember;
 import com.moviepick.global.response.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 @RestController
 @RequiredArgsConstructor
@@ -37,15 +37,15 @@ public class MemberController {
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
+
     @DeleteMapping("/me")
     public ResponseEntity<ApiResponse<Void>> deleteMember(
-            @LoginMember Long memberId,
-            HttpServletRequest request
+            @LoginMember Long memberId
     ) {
+        // 로그인한 회원을 탈퇴 상태로 변경
         memberService.deleteMember(memberId);
 
-        request.getSession(false).invalidate();
-
+        // JWT 방식이므로 HTTP 세션 무효화는 하지 않음
         return ResponseEntity.ok(ApiResponse.ok());
     }
 }
