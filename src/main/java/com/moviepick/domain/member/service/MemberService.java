@@ -11,12 +11,14 @@ import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.moviepick.global.auth.RefreshTokenService;
 
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class MemberService {
 
+    private final RefreshTokenService refreshTokenService;
     private final MemberRepository memberRepository;
 
     public Member getActiveMember(Long memberId) {
@@ -52,12 +54,20 @@ public class MemberService {
         return MemberResponse.from(member);
     }
 
+
     @Transactional
     public void deleteMember(Long memberId) {
+
+        // 1. 회원 조회
         Member member = getActiveMember(memberId);
 
+        // 2. 회원 탈퇴 처리
         member.withdraw();
+
+        // 3. 기존 Refresh Token 전체 무효화
+        refreshTokenService.invalidateAll(memberId);
     }
+
 
     public Member getMember(Long memberId) {
         return memberRepository.findById(memberId)

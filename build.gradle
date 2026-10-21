@@ -22,7 +22,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// 인증·인가 (인증 파트: SecurityConfig와 같은 PR에서 반영)
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
@@ -36,7 +36,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-batch'
 
 	// Refresh Token을 Redis에 저장하기로 한 경우에만
-	 implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// 마이그레이션 도구를 쓰기로 한 경우에만 (MySQL은 flyway-mysql 필요)
 	// implementation 'org.springframework.boot:spring-boot-starter-flyway'
