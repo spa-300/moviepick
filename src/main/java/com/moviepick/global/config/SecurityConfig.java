@@ -1,6 +1,8 @@
 package com.moviepick.global.config;
 
 import com.moviepick.global.auth.JwtAuthenticationFilter;
+import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
+import com.moviepick.global.auth.CustomAccessDeniedHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -14,8 +16,6 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
-import com.moviepick.global.auth.CustomAccessDeniedHandler;
 
 import java.util.List;
 
@@ -44,7 +44,6 @@ public class SecurityConfig {
                                 SessionCreationPolicy.STATELESS
                         )
                 )
-
 
                 // CSRF 보호 설정
                 .csrf(csrf -> csrf
@@ -85,6 +84,14 @@ public class SecurityConfig {
                                 "/api/auth/refresh"
                         ).permitAll()
 
+                        // 커뮤니티 게시글·댓글 조회는 비로그인 허용
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/community/posts",
+                                "/api/community/posts/*",
+                                "/api/community/posts/*/comments"
+                        ).permitAll()
+
                         // 관리자 API
                         .requestMatchers("/api/admin/**")
                         .hasRole("ADMIN")
@@ -99,14 +106,8 @@ public class SecurityConfig {
                         UsernamePasswordAuthenticationFilter.class
                 );
 
-
-
-
-
-
         return http.build();
     }
-
 
     // React 개발 서버 CORS 설정
     @Bean
@@ -157,5 +158,4 @@ public class SecurityConfig {
 
         return registration;
     }
-
 }
