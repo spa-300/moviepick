@@ -9,6 +9,8 @@ import com.moviepick.domain.community.entity.Comment;
 import com.moviepick.domain.community.entity.CommentStatus;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.entity.PostStatus;
+import com.moviepick.domain.community.exception.CommentErrorCode;
+import com.moviepick.domain.community.exception.PostErrorCode;
 import com.moviepick.domain.community.repository.CommentRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
@@ -46,12 +48,13 @@ public class CommentService {
         Post post = postRepository
                 .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
         Comment comment = Comment.create(post, member, request.content());
         Comment savedComment = commentRepository.save(comment);
 
-        post.increaseCommentCount();
+        // 댓글 수 원자적 증가
+        postRepository.increaseCommentCount(postId);
 
         return CommentCreateResponse.from(savedComment);
     }
@@ -64,7 +67,7 @@ public class CommentService {
     ) {
         postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
         Pageable pageRequest = PageRequest.of(
                 pageable.getPageNumber(),
@@ -102,22 +105,24 @@ public class CommentService {
     ) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         if (!comment.getPost().getId().equals(postId)) {
-            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
         if (!comment.getMember().getId().equals(memberId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
         }
 
         if (comment.getStatus() != CommentStatus.VISIBLE) {
-            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
         comment.delete();
-        comment.getPost().decreaseCommentCount();
+
+        // 댓글 수 원자적 감소
+        postRepository.decreaseCommentCount(postId);
     }
 
     // 댓글 삭제 (댓글 ID 기준)
@@ -125,18 +130,22 @@ public class CommentService {
     public void deleteCommentById(Long memberId, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         if (!comment.getMember().getId().equals(memberId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
         }
 
         if (comment.getStatus() != CommentStatus.VISIBLE) {
-            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
+        Long postId = comment.getPost().getId();
+
         comment.delete();
-        comment.getPost().decreaseCommentCount();
+
+        // 댓글 수 원자적 감소
+        postRepository.decreaseCommentCount(postId);
     }
 
     // 댓글 수정
@@ -149,18 +158,18 @@ public class CommentService {
     ) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND));
 
         if (!comment.getPost().getId().equals(postId)) {
-            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
         if (!comment.getMember().getId().equals(memberId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
         }
 
         if (comment.getStatus() != CommentStatus.VISIBLE) {
-            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
         comment.update(request.content());

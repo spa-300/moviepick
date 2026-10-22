@@ -9,6 +9,7 @@ import com.moviepick.domain.community.dto.response.PostListResponse;
 import com.moviepick.domain.community.dto.response.PostUpdateResponse;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.entity.PostStatus;
+import com.moviepick.domain.community.exception.PostErrorCode;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
@@ -131,10 +132,16 @@ public class PostService {
         Post post = postRepository
                 .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
-        // 조회수 증가
-        post.increaseViewCount();
+        // 조회수 원자적 증가
+        postRepository.increaseViewCount(postId);
+
+        // 증가된 조회수를 응답에 반영
+        post = postRepository
+                .findByIdAndStatus(postId, PostStatus.VISIBLE)
+                .orElseThrow(() ->
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
         // 좋아요 수 조회
         long likeCount = postLikeService.getLikeCount(postId);
@@ -156,16 +163,26 @@ public class PostService {
         Post post = postRepository
                 .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
         // 작성자 본인인지 확인
         if (!post.getMember().getId().equals(memberId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            throw new BusinessException(PostErrorCode.POST_ACCESS_DENIED);
         }
 
         // 제목과 내용 중 최소 하나는 입력해야 함
         if (request.title() == null && request.content() == null) {
-            throw new BusinessException(CommonErrorCode.INVALID_INPUT);
+            throw new BusinessException(PostErrorCode.POST_INVALID_INPUT);
+        }
+
+        // 입력된 제목이 공백만으로 이루어진 경우
+        if (request.title() != null && request.title().isBlank()) {
+            throw new BusinessException(PostErrorCode.POST_INVALID_INPUT);
+        }
+
+        // 입력된 내용이 공백만으로 이루어진 경우
+        if (request.content() != null && request.content().isBlank()) {
+            throw new BusinessException(PostErrorCode.POST_INVALID_INPUT);
         }
 
         // 전달된 필드만 수정하고 생략한 필드는 기존 값 유지
@@ -188,11 +205,11 @@ public class PostService {
         Post post = postRepository
                 .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
         // 작성자 본인인지 확인
         if (!post.getMember().getId().equals(memberId)) {
-            throw new BusinessException(CommonErrorCode.FORBIDDEN);
+            throw new BusinessException(PostErrorCode.POST_ACCESS_DENIED);
         }
 
         post.delete();

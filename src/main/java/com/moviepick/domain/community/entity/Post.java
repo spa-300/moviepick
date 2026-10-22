@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.entity;
 
 import com.moviepick.domain.member.entity.Member;
@@ -16,11 +17,13 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Entity
 @Table(name = "post")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@DynamicUpdate
 public class Post extends BaseEntity {
 
     @Id
