@@ -1,31 +1,18 @@
 package com.moviepick.domain.admin.service;
 
-import com.moviepick.domain.review.entity.Review;
-import com.moviepick.domain.review.repository.ReviewRepository;
+import com.moviepick.domain.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 public class AdminReviewService {
 
-    private final ReviewRepository reviewRepository;
+    private final ReviewService reviewService;
 
     // 관리자: 리뷰 삭제 (블라인드 처리)
-    @Transactional
+    // 상태 변경과 영화 평점 차감은 리뷰 도메인(ReviewService.blind)이 한 트랜잭션으로 처리한다
     public void deleteReview(Long reviewId) {
-
-        // 1. 리뷰 조회 및 비관적 쓰기 잠금
-        Review review = reviewRepository.findByIdForUpdate(reviewId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("리뷰를 찾을 수 없습니다.")
-                );
-
-        // 2. 관리자 블라인드 처리
-        // VISIBLE 상태가 아니면 기존 Review 엔티티에서 예외 발생
-        review.blind();
-
-        // 3. @Transactional에 의해 변경 사항 자동 반영
+        reviewService.blind(reviewId);
     }
 }

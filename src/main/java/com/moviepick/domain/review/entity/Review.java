@@ -106,12 +106,6 @@ public class Review extends BaseEntity {
         this.status = ReviewStatus.DELETED;
     }
 
-    /** 관리자 삭제 (블라인드). 이후 작성자는 같은 영화에 다시 리뷰를 쓸 수 없다. */
-    public void blind() {
-        requireVisible();
-        this.status = ReviewStatus.BLIND;
-    }
-
     /** 수정·삭제 권한 확인: DELETED는 404, 남의 리뷰·BLIND는 403 */
     public void validateModifiableBy(Long memberId) {
         if (status == ReviewStatus.DELETED) {

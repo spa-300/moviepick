@@ -26,6 +26,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Review> findByMemberIdAndMovieIdForUpdate(@Param("memberId") Long memberId,
                                                        @Param("movieId") Long movieId);
 
+    // 상태 전이 (조건부 UPDATE). 반영된 행이 1일 때만 평점 집계를 건드린다 → 중복 처리돼도 두 번 빠지지 않음
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Review r set r.status = :to, r.updatedAt = CURRENT_TIMESTAMP "
+            + "where r.id = :id and r.status = :from")
+    int changeStatus(@Param("id") Long id,
+                     @Param("from") ReviewStatus from,
+                     @Param("to") ReviewStatus to);
+
     // ===== 조회용 (N+1 방지: EntityGraph) =====
 
     @EntityGraph(attributePaths = "member")

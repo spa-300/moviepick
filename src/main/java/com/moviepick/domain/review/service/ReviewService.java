@@ -3,7 +3,7 @@ package com.moviepick.domain.review.service;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.domain.movie.entity.Movie;
-import com.moviepick.domain.movie.service.MovieService;
+import com.moviepick.domain.movie.service.MovieRatingService;
 import com.moviepick.domain.review.dto.request.ReviewCreateRequest;
 import com.moviepick.domain.review.dto.request.ReviewSort;
 import com.moviepick.domain.review.dto.request.ReviewUpdateRequest;
@@ -39,7 +39,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final MemberService memberService;
-    private final MovieService movieService;
+    private final MovieRatingService movieRatingService;
 
     // ===================== 작성 =====================
 
@@ -47,7 +47,7 @@ public class ReviewService {
     public ReviewCreateResponse createReview(Long memberId, Long movieId, ReviewCreateRequest request) {
         BigDecimal rating = normalizeRating(request.rating());
         Member member = memberService.getMember(memberId);   // [수정] getActiveMember → getMember
-        Movie movie = movieService.getMovie(movieId);
+        Movie movie = movieRatingService.getMovie(movieId);
         boolean spoiler = request.spoilerOrDefault();
 
         // 같은 (회원, 영화)의 기존 리뷰 상태에 따라 분기
@@ -55,7 +55,7 @@ public class ReviewService {
                 .map(existing -> rewriteIfDeleted(existing, rating, request.content(), spoiler))
                 .orElseGet(() -> saveNew(member, movie, rating, request.content(), spoiler));
 
-        movieService.applyRating(movieId, rating, 1);
+        movieRatingService.applyRating(movieId, rating, 1);
         return ReviewCreateResponse.from(review);
     }
 
@@ -85,7 +85,7 @@ public class ReviewService {
 
     public PageResponse<ReviewResponse> getMovieReviews(
             Long movieId, Long memberId, ReviewSort sort, int page, int size) {
-        movieService.getMovie(movieId);   // 없으면 MOVIE_NOT_FOUND
+        movieRatingService.getMovie(movieId);   // 없으면 MOVIE_NOT_FOUND
 
         Page<Review> reviews = reviewRepository.findByMovieIdAndStatus(
                 movieId, ReviewStatus.VISIBLE, PageRequest.of(page, size, sort.getSort()));
@@ -134,7 +134,7 @@ public class ReviewService {
         if (newRating != null) {
             BigDecimal delta = newRating.subtract(oldRating);
             if (delta.signum() != 0) {
-                movieService.applyRating(review.getMovie().getId(), delta, 0);
+                movieRatingService.applyRating(review.getMovie().getId(), delta, 0);
             }
         }
 
@@ -150,16 +150,27 @@ public class ReviewService {
         review.validateModifiableBy(memberId);
         review.delete();   // VISIBLE → DELETED
 
-        movieService.applyRating(review.getMovie().getId(), review.getRating().negate(), -1);
+        movieRatingService.applyRating(review.getMovie().getId(), review.getRating().negate(), -1);
     }
 
-    /** 관리자 파트(DELETE /api/admin/reviews/{id})에서 호출. VISIBLE → BLIND */
+    /**
+     * 관리자 파트(DELETE /api/admin/reviews/{id})에서 호출. VISIBLE → BLIND + 평점 집계 차감을 한 트랜잭션으로 처리.
+     * 상태 변경은 조건부 UPDATE라서, 이미 BLIND/DELETED면 반영 행이 0 → 차감하지 않는다 (중복 블라인드·작성자 삭제와 겹쳐도 안전).
+     * 존재하지 않는 리뷰만 REVIEW_NOT_FOUND, 이미 숨겨진 리뷰는 아무것도 하지 않는다 (멱등).
+     */
     @Transactional
-    public void blindReview(Long reviewId) {
-        Review review = findReviewForUpdate(reviewId);
-        review.blind();
+    public void blind(Long reviewId) {
+        int changed = reviewRepository.changeStatus(reviewId, ReviewStatus.VISIBLE, ReviewStatus.BLIND);
+        if (changed == 0) {
+            if (!reviewRepository.existsById(reviewId)) {
+                throw new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND);
+            }
+            return;
+        }
 
-        movieService.applyRating(review.getMovie().getId(), review.getRating().negate(), -1);
+        // UPDATE로 이미 행 잠금을 잡았으므로, 잠금 조회로 최신 평점을 읽어 차감한다
+        Review review = findReviewForUpdate(reviewId);
+        movieRatingService.applyRating(review.getMovie().getId(), review.getRating().negate(), -1);
     }
 
     // ===================== 내부 메서드 =====================

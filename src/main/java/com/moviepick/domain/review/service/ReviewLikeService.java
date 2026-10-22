@@ -11,6 +11,7 @@ import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,12 +39,26 @@ public class ReviewLikeService {
         try {
             reviewLikeRepository.saveAndFlush(ReviewLike.create(review, member));
         } catch (DataIntegrityViolationException e) {
-            // 중복 요청: 유니크 제약(member_id, review_id)
-            throw new BusinessException(ReviewErrorCode.ALREADY_LIKED);
+            // 중복 요청: 유니크 제약(member_id, review_id)만 409로 바꾸고, 다른 제약 위반은 그대로 던진다
+            if (isDuplicateLike(e)) {
+                throw new BusinessException(ReviewErrorCode.ALREADY_LIKED);
+            }
+            throw e;
         }
 
+        // INSERT 성공 후에만 원자적으로 +1. 이후 예외가 나면 INSERT와 함께 롤백된다 (같은 트랜잭션)
         reviewRepository.increaseLikeCount(reviewId);
         return new LikeResponse(true, reviewRepository.findLikeCountById(reviewId));
+    }
+
+    private boolean isDuplicateLike(DataIntegrityViolationException e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof ConstraintViolationException cve) {
+                String name = cve.getConstraintName();
+                return name != null && name.toLowerCase().contains(ReviewLike.UK_MEMBER_REVIEW);
+            }
+        }
+        return false;
     }
 
     @Transactional

@@ -13,10 +13,13 @@ import lombok.NoArgsConstructor;
 @Table(
         name = "review_likes",
         uniqueConstraints = @UniqueConstraint(
-                name = "uk_review_likes_member_id_review_id",
+                name = ReviewLike.UK_MEMBER_REVIEW,
                 columnNames = {"member_id", "review_id"}),
         indexes = @Index(name = "idx_review_likes_review_id", columnList = "review_id"))
 public class ReviewLike extends BaseEntity {
+
+    // 중복 좋아요 판별용 (ReviewLikeService에서 제약 이름으로 409 여부를 가린다)
+    public static final String UK_MEMBER_REVIEW = "uk_review_likes_member_id_review_id";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
