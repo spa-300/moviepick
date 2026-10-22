@@ -1,7 +1,11 @@
+
 package com.moviepick.domain.admin.repository;
 
 import com.moviepick.domain.admin.entity.AdminSanction;
+import com.moviepick.domain.community.entity.ReportTargetType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface AdminSanctionRepository
         extends JpaRepository<AdminSanction, Long> {
@@ -11,4 +15,17 @@ public interface AdminSanctionRepository
 
     // 동일 신고가 이미 제재 처리되었는지 확인
     boolean existsByReportId(Long reportId);
+
+    // 동일 게시글 또는 댓글에 이미 제재가 적용되었는지 확인
+    @Query("""
+            SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END
+            FROM AdminSanction s
+            JOIN s.report r
+            WHERE r.targetType = :targetType
+              AND r.targetId = :targetId
+            """)
+    boolean existsByReportTarget(
+            @Param("targetType") ReportTargetType targetType,
+            @Param("targetId") Long targetId
+    );
 }

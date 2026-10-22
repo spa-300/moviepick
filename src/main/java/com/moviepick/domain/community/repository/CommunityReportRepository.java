@@ -2,10 +2,12 @@
 package com.moviepick.domain.community.repository;
 
 import com.moviepick.domain.community.entity.CommunityReport;
+import com.moviepick.domain.community.entity.ReportStatus;
 import com.moviepick.domain.community.entity.ReportTargetType;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -21,10 +23,25 @@ public interface CommunityReportRepository
             Long targetId
     );
 
-    // 관리자: 신고 처리 시 중복 승인 방지를 위한 잠금
+    // 기존 기능: 신고 처리 시 비관적 잠금
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT r FROM CommunityReport r WHERE r.id = :reportId")
     Optional<CommunityReport> findByIdForUpdate(
             @Param("reportId") Long reportId
+    );
+
+    // 신규 기능: PENDING 상태의 신고만 처리
+    // 이미 처리된 신고라면 업데이트된 행 수가 0
+    @Modifying(flushAutomatically = true)
+    @Query("""
+            UPDATE CommunityReport r
+            SET r.status = :newStatus
+            WHERE r.id = :reportId
+              AND r.status = :pendingStatus
+            """)
+    int updateStatusIfPending(
+            @Param("reportId") Long reportId,
+            @Param("newStatus") ReportStatus newStatus,
+            @Param("pendingStatus") ReportStatus pendingStatus
     );
 }

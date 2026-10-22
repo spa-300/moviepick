@@ -1,5 +1,8 @@
+
 package com.moviepick.global.auth;
 
+import com.moviepick.domain.member.entity.Member;
+import com.moviepick.domain.member.service.MemberService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,8 +15,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import com.moviepick.domain.member.entity.Member;
-import com.moviepick.domain.member.service.MemberService;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,6 +27,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
+    // 토큰 재발급 요청은 Access Token 검증에서 제외
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return "POST".equalsIgnoreCase(request.getMethod())
+                && "/api/auth/refresh".equals(request.getServletPath());
+    }
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -37,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authorization = request.getHeader("Authorization");
 
         // 2. Authorization 헤더가 없으면 다음 필터로 이동
-        if (authorization == null) {
+        if (authorization == null || authorization.isBlank()) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -64,22 +72,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
             }
 
-            // 7. 회원 ID와 권한 추출
+            // 7. 회원 ID 추출
             Long memberId = Long.valueOf(claims.getSubject());
 
-
-            // DB에서 회원을 조회하고 ACTIVE 상태인지 확인
+            // DB에서 회원 조회 및 ACTIVE 상태 확인
             Member member;
 
             try {
                 member = memberService.getActiveMember(memberId);
             } catch (RuntimeException e) {
                 throw new IllegalArgumentException(
-                        "존재하지 않거나 이용할 수 없는 회원입니다.", e
+                        "존재하지 않거나 이용할 수 없는 회원입니다.",
+                        e
                 );
             }
 
-            // JWT에 저장된 권한 대신 DB의 현재 권한 사용
+            // DB에 저장된 현재 권한 사용
             if (member.getRole() == null) {
                 throw new IllegalArgumentException(
                         "회원 권한 정보가 없습니다."
@@ -118,7 +126,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    // 인증 실패 시 CustomAuthenticationEntryPoint 호출
+    // 인증 실패 시 401 응답 처리
     private void sendUnauthorized(
             HttpServletRequest request,
             HttpServletResponse response

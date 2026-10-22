@@ -1,8 +1,10 @@
+
 package com.moviepick.global.config;
 
 import com.moviepick.global.auth.CustomAccessDeniedHandler;
 import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
+import com.moviepick.global.auth.CustomOidcUserService;
 import com.moviepick.global.auth.JwtAuthenticationFilter;
 import com.moviepick.global.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +21,6 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import com.moviepick.global.auth.CustomOidcUserService;
 
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class SecurityConfig {
     private final CustomOidcUserService customOidcUserService;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
 
-    // 카카오 OAuth2 로그인 전용 보안 설정
+    // OAuth2 로그인 전용 보안 설정
     @Bean
     @Order(1)
     public SecurityFilterChain oauth2SecurityFilterChain(
@@ -48,7 +49,6 @@ public class SecurityConfig {
                         "/login/oauth2/code/**"
                 )
 
-                // OAuth2 인증 과정에서 세션 사용
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
                                 SessionCreationPolicy.IF_REQUIRED
@@ -68,6 +68,7 @@ public class SecurityConfig {
                         )
                         .successHandler(oauth2LoginSuccessHandler)
                 );
+
         return http.build();
     }
 
@@ -79,19 +80,18 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                // React와 Spring Boot 간 CORS 허용
                 .cors(cors -> cors.configurationSource(
                         corsConfigurationSource()
                 ))
 
-                // API는 JWT 기반으로 인증
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
                         )
                 )
 
-                // CSRF 보호 설정
+                // CSRF 정책은 기존 설정 유지
+                // PortOne 웹훅만 CSRF 검사 제외
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(
                                 CookieCsrfTokenRepository.withHttpOnlyFalse()
@@ -99,15 +99,16 @@ public class SecurityConfig {
                         .csrfTokenRequestHandler(
                                 new CsrfTokenRequestAttributeHandler()
                         )
+                        .ignoringRequestMatchers(
+                                "/api/webhooks/portone"
+                        )
                 )
 
-                // 인증 실패(401), 권한 부족(403) 처리
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
                 )
 
-                // API 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
 
                         // CSRF 토큰 발급
@@ -130,12 +131,32 @@ public class SecurityConfig {
                                 "/api/auth/refresh"
                         ).permitAll()
 
-                        // 커뮤니티 게시글·댓글 조회는 비로그인 허용
+                        // 영화 목록 및 상세 조회
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/movies",
+                                "/api/movies/*"
+                        ).permitAll()
+
+                        // 리뷰 조회
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/reviews",
+                                "/api/reviews/*"
+                        ).permitAll()
+
+                        // 커뮤니티 게시글 및 댓글 조회
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/community/posts",
                                 "/api/community/posts/*",
                                 "/api/community/posts/*/comments"
+                        ).permitAll()
+
+                        // PortOne 결제 웹훅
+                        .requestMatchers(
+                                HttpMethod.POST,
+                                "/api/webhooks/portone"
                         ).permitAll()
 
                         // 관리자 API
@@ -146,47 +167,34 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // JWT 인증 필터 등록
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
                 );
 
-
-
-
-
-
         return http.build();
     }
-
 
     // React 개발 서버 CORS 설정
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
 
-
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 허용할 React 주소
         configuration.setAllowedOrigins(
                 List.of("http://localhost:5173")
         );
 
-        // 허용할 HTTP 메서드
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         );
 
-        // 허용할 요청 헤더
         configuration.setAllowedHeaders(
                 List.of("Authorization", "Content-Type", "X-XSRF-TOKEN")
         );
 
-        // 쿠키를 포함한 요청 허용
         configuration.setAllowCredentials(true);
 
-        // 프론트엔드에서 읽을 수 있는 응답 헤더
         configuration.setExposedHeaders(
                 List.of("Authorization")
         );
@@ -211,5 +219,5 @@ public class SecurityConfig {
 
         return registration;
     }
-
 }
+

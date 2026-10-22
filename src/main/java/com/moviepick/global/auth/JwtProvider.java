@@ -1,3 +1,4 @@
+
 package com.moviepick.global.auth;
 
 import io.jsonwebtoken.Claims;
@@ -34,6 +35,7 @@ public class JwtProvider {
 
     // Access Token 생성
     public String createAccessToken(Long memberId, String role) {
+
         Date now = new Date();
 
         return Jwts.builder()
@@ -48,9 +50,9 @@ public class JwtProvider {
                 .compact();
     }
 
-
     // Refresh Token 생성
     public String createRefreshToken(Long memberId, long authVersion) {
+
         Date now = new Date();
 
         return Jwts.builder()
@@ -68,6 +70,7 @@ public class JwtProvider {
 
     // JWT 서명 및 만료시간 검증
     public Claims validateToken(String token) {
+
         try {
             return Jwts.parser()
                     .verifyWith(secretKey)
