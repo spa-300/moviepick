@@ -36,6 +36,11 @@ public enum CommonErrorCode implements ErrorCode {
     INTERNAL_ERROR(
             HttpStatus.INTERNAL_SERVER_ERROR,
             "서버 오류가 발생했습니다."
+    ),
+
+    MOVIE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "존재하지 않는 영화입니다."
     );
 
     private final HttpStatus status;
