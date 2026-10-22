@@ -19,7 +19,7 @@ public record MovieDetailResponse(
         Double voteAverage,
         Integer voteCount,
         Double popularity,
-        String posterPath,
+        String posterUrl,
         String backdropPath,
         List<GenreResponse> genres
 ) {
@@ -48,7 +48,7 @@ public record MovieDetailResponse(
                 movie.getVoteAverage(),
                 movie.getVoteCount(),
                 movie.getPopularity(),
-                movie.getPosterPath(),
+                movie.getPosterUrl(),
                 movie.getBackdropPath(),
                 genreResponses
         );

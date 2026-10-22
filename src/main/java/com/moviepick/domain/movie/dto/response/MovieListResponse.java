@@ -9,7 +9,7 @@ public record MovieListResponse(
         String title,
         LocalDate releaseDate,
         Double voteAverage,
-        String posterPath
+        String posterUrl
 ) {
     public static MovieListResponse from(Movie movie) {
         return new MovieListResponse(
@@ -17,7 +17,7 @@ public record MovieListResponse(
                 movie.getTitle(),
                 movie.getReleaseDate(),
                 movie.getVoteAverage(),
-                movie.getPosterPath()
+                movie.getPosterUrl()
         );
     }
 }
