@@ -2,6 +2,8 @@ package com.moviepick.domain.movie.service;
 
 import com.moviepick.domain.movie.entity.Movie;
 import com.moviepick.domain.movie.repository.MovieRepository;
+import com.moviepick.global.exception.BusinessException;
+import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +22,9 @@ public class MovieRatingService {
     public Movie getMovie(Long movieId) {
         return movieRepository.findById(movieId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("영화를 찾을 수 없습니다. ID: " + movieId)
+                        new BusinessException(
+                                CommonErrorCode.MOVIE_NOT_FOUND
+                        )
                 );
     }
 
