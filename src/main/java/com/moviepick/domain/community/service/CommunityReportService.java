@@ -1,6 +1,7 @@
 
 package com.moviepick.domain.community.service;
 
+import com.moviepick.domain.community.dto.response.CommunityReportResponse;
 import com.moviepick.domain.community.entity.Comment;
 import com.moviepick.domain.community.entity.CommentStatus;
 import com.moviepick.domain.community.entity.CommunityReport;
@@ -12,6 +13,8 @@ import com.moviepick.domain.community.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.global.exception.BusinessException;
+import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,62 +31,103 @@ public class CommunityReportService {
 
     // 게시글 신고
     @Transactional
-    public void reportPost(Long reporterId, Long postId, String reason) {
-        Post post = postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
+    public CommunityReportResponse reportPost(
+            Long reporterId,
+            Long postId,
+            String reason,
+            String detail
+    ) {
+        Post post = postRepository
+                .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("신고할 게시글을 찾을 수 없습니다."));
+                        new BusinessException(CommonErrorCode.NOT_FOUND));
 
-        createReport(reporterId, ReportTargetType.POST, post.getId(), reason);
+        // 본인이 작성한 게시글은 신고할 수 없음
+        if (post.getMember().getId().equals(reporterId)) {
+            throw new BusinessException(
+                    CommonErrorCode.CANNOT_REPORT_OWN_CONTENT);
+        }
+
+        return createReport(
+                reporterId,
+                ReportTargetType.POST,
+                post.getId(),
+                reason,
+                detail
+        );
     }
 
     // 댓글 신고
     @Transactional
-    public void reportComment(
+    public CommunityReportResponse reportComment(
             Long reporterId,
             Long commentId,
-            String reason
+            String reason,
+            String detail
     ) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("신고할 댓글을 찾을 수 없습니다."));
+                        new BusinessException(CommonErrorCode.NOT_FOUND));
 
-        if (comment.getStatus() != CommentStatus.VISIBLE) {
-            throw new IllegalArgumentException("삭제된 댓글은 신고할 수 없습니다.");
+        if (comment.getStatus() != CommentStatus.VISIBLE
+                || comment.getPost().getStatus() != PostStatus.VISIBLE) {
+            throw new BusinessException(CommonErrorCode.NOT_FOUND);
         }
 
-        if (comment.getPost().getStatus() != PostStatus.VISIBLE) {
-            throw new IllegalArgumentException("삭제된 게시글의 댓글은 신고할 수 없습니다.");
+        // 본인이 작성한 댓글은 신고할 수 없음
+        if (comment.getMember().getId().equals(reporterId)) {
+            throw new BusinessException(
+                    CommonErrorCode.CANNOT_REPORT_OWN_CONTENT);
         }
 
-        createReport(
+        return createReport(
                 reporterId,
                 ReportTargetType.COMMENT,
                 comment.getId(),
-                reason
+                reason,
+                detail
         );
     }
 
     // 신고 공통 처리
-    private void createReport(
+    private CommunityReportResponse createReport(
             Long reporterId,
             ReportTargetType targetType,
             Long targetId,
-            String reason
+            String reason,
+            String detail
     ) {
-        if (communityReportRepository.existsByReporterIdAndTargetTypeAndTargetId(
-                reporterId, targetType, targetId
-        )) {
-            throw new IllegalArgumentException("이미 신고한 대상입니다.");
-        }
-
         Member reporter = memberRepository.findById(reporterId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("신고자를 찾을 수 없습니다."));
+                        new BusinessException(CommonErrorCode.UNAUTHORIZED));
 
-        CommunityReport report = CommunityReport.create(
-                reporter, targetType, targetId, reason
-        );
+        if (communityReportRepository
+                .existsByReporterIdAndTargetTypeAndTargetId(
+                        reporterId,
+                        targetType,
+                        targetId
+                )) {
+            throw new BusinessException(
+                    CommonErrorCode.DUPLICATE_REPORT);
+        }
 
-        communityReportRepository.save(report);
+        CommunityReport report;
+
+        try {
+            report = CommunityReport.create(
+                    reporter,
+                    targetType,
+                    targetId,
+                    reason,
+                    detail
+            );
+        } catch (IllegalArgumentException e) {
+            throw new BusinessException(CommonErrorCode.INVALID_INPUT);
+        }
+
+        CommunityReport savedReport =
+                communityReportRepository.save(report);
+
+        return CommunityReportResponse.from(savedReport);
     }
 }

@@ -2,6 +2,7 @@
 package com.moviepick.domain.community.controller;
 
 import com.moviepick.domain.community.dto.request.CommunityReportRequest;
+import com.moviepick.domain.community.dto.response.CommunityReportResponse;
 import com.moviepick.domain.community.service.CommunityReportService;
 import com.moviepick.global.auth.LoginMember;
 import com.moviepick.global.response.ApiResponse;
@@ -23,35 +24,39 @@ public class CommunityReportController {
 
     // 게시글 신고
     @PostMapping("/posts/{postId}/reports")
-    public ResponseEntity<ApiResponse<Void>> reportPost(
+    public ResponseEntity<ApiResponse<CommunityReportResponse>> reportPost(
             @LoginMember Long memberId,
             @PathVariable Long postId,
             @Valid @RequestBody CommunityReportRequest request
     ) {
-        communityReportService.reportPost(
-                memberId,
-                postId,
-                request.getReason()
-        );
+        CommunityReportResponse response =
+                communityReportService.reportPost(
+                        memberId,
+                        postId,
+                        request.getReason(),
+                        request.getDetail()
+                );
 
         return ResponseEntity.status(201)
-                .body(ApiResponse.created(null));
+                .body(ApiResponse.created(response));
     }
 
     // 댓글 신고
     @PostMapping("/comments/{commentId}/reports")
-    public ResponseEntity<ApiResponse<Void>> reportComment(
+    public ResponseEntity<ApiResponse<CommunityReportResponse>> reportComment(
             @LoginMember Long memberId,
             @PathVariable Long commentId,
             @Valid @RequestBody CommunityReportRequest request
     ) {
-        communityReportService.reportComment(
-                memberId,
-                commentId,
-                request.getReason()
-        );
+        CommunityReportResponse response =
+                communityReportService.reportComment(
+                        memberId,
+                        commentId,
+                        request.getReason(),
+                        request.getDetail()
+                );
 
         return ResponseEntity.status(201)
-                .body(ApiResponse.created(null));
+                .body(ApiResponse.created(response));
     }
 }
