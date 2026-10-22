@@ -147,9 +147,11 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         SecurityContextHolder.clearContext();
 
+
         // 9. React 로그인 완료 페이지로 이동
         response.sendRedirect(
                 "http://localhost:5173/oauth2/success"
         );
+
     }
 }

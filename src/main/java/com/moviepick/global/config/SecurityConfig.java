@@ -165,6 +165,7 @@ public class SecurityConfig {
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
 
+
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 허용할 React 주소

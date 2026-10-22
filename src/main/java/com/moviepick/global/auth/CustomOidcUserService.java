@@ -68,12 +68,17 @@ public class CustomOidcUserService extends OidcUserService {
                         )
                 ));
 
-        // 정지 또는 탈퇴 회원 로그인 차단
+
+        // 정지 기간이 만료되었다면 자동 해제
+        member.releaseSuspensionIfExpired();
+
+        // 아직 정지 중이거나 탈퇴한 회원은 로그인 차단
         if (member.getStatus() != MemberStatus.ACTIVE) {
             throw new OAuth2AuthenticationException(
                     "로그인할 수 없는 회원입니다."
             );
         }
+
 
         return oidcUser;
     }

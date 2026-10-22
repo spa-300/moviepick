@@ -111,4 +111,25 @@ public class CommunityReport extends BaseEntity {
             throw new IllegalArgumentException("올바르지 않은 신고 유형입니다.");
         }
     }
+
+    // 관리자가 신고를 승인하거나 반려
+    public void process(ReportStatus newStatus) {
+
+        // 이미 처리한 신고는 다시 처리할 수 없음
+        if (this.status != ReportStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 신고입니다.");
+        }
+
+        // 승인 또는 반려만 허용
+        if (newStatus != ReportStatus.ACCEPTED
+                && newStatus != ReportStatus.REJECTED) {
+            throw new IllegalArgumentException(
+                    "신고는 승인 또는 반려만 가능합니다."
+            );
+        }
+
+        this.status = newStatus;
+    }
+
+
 }
