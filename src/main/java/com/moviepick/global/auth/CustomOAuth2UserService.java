@@ -79,11 +79,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                                 finalNickname
                         )
                 ));
+
+            // 정지 기간이 만료되었다면 자동 해제
+        member.releaseSuspensionIfExpired();
+
+            // 아직 정지 상태이거나 탈퇴한 회원은 로그인 차단
         if (member.getStatus() != MemberStatus.ACTIVE) {
             throw new OAuth2AuthenticationException(
                     "로그인할 수 없는 회원입니다."
             );
         }
+
 
         return oauth2User;
     }

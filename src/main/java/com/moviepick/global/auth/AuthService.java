@@ -51,6 +51,7 @@ public class AuthService {
     }
 
     // 로그인
+    @Transactional
     public LoginResult login(LoginRequest request) {
 
         // 1. 이메일로 회원 조회
@@ -70,12 +71,17 @@ public class AuthService {
             );
         }
 
-        // 3. 회원 상태 확인
+
+        // 3. 정지 기간이 만료되었다면 자동 해제
+        member.releaseSuspensionIfExpired();
+
+        // 4. 아직 정지 상태라면 로그인 차단
         if (member.getStatus() == MemberStatus.SUSPENDED) {
             throw new BusinessException(
                     MemberErrorCode.MEMBER_SUSPENDED
             );
         }
+
 
         if (member.getStatus() == MemberStatus.WITHDRAWN) {
             throw new BusinessException(
@@ -131,6 +137,7 @@ public class AuthService {
 
 
     // Access Token 재발급
+    @Transactional
     public String refreshAccessToken(String refreshToken) {
 
         // 1. Refresh Token이 없는 경우
@@ -180,12 +187,17 @@ public class AuthService {
                         MemberErrorCode.MEMBER_NOT_FOUND
                 ));
 
-        // 5. 회원 상태 확인
+
+        // 5. 정지 기간이 만료되었다면 자동 해제
+        member.releaseSuspensionIfExpired();
+
+        // 6. 아직 정지 상태라면 토큰 재발급 차단
         if (member.getStatus() == MemberStatus.SUSPENDED) {
             throw new BusinessException(
                     MemberErrorCode.MEMBER_SUSPENDED
             );
         }
+
 
         if (member.getStatus() == MemberStatus.WITHDRAWN) {
             throw new BusinessException(

@@ -12,7 +12,6 @@ import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 
 @Getter
@@ -110,4 +109,27 @@ public class Member extends BaseEntity {
         this.status = MemberStatus.WITHDRAWN;
         this.withdrawnAt = LocalDateTime.now();
     }
+
+
+    public boolean releaseSuspensionIfExpired() {
+
+        // 정지 상태가 아니면 아무 작업도 하지 않음
+        if (this.status != MemberStatus.SUSPENDED) {
+            return false;
+        }
+
+        // 종료일이 없으면 영구 정지이므로 해제하지 않음
+        if (this.suspendedUntil == null) {
+            return false;
+        }
+
+        // 정지 종료 시간이 지났다면 자동 해제
+        if (!this.suspendedUntil.isAfter(LocalDateTime.now())) {
+            releaseSuspension();
+            return true;
+        }
+
+        return false;
+    }
+
 }
