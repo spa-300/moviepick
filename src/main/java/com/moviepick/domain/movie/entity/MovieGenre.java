@@ -44,4 +44,9 @@ public class MovieGenre extends BaseEntity {
         this.tmdbGenreId = tmdbGenreId;
         this.genreName = genreName;
     }
+
+    // 장르 이름 수정
+    public void updateGenreName(String genreName) {
+        this.genreName = genreName;
+    }
 }
