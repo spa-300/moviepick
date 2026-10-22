@@ -19,6 +19,7 @@ import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import com.moviepick.global.auth.CustomOidcUserService;
 
 import java.util.List;
 
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
     private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
 
     // 카카오 OAuth2 로그인 전용 보안 설정
@@ -62,10 +64,10 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
+                                .oidcUserService(customOidcUserService)
                         )
                         .successHandler(oauth2LoginSuccessHandler)
                 );
-
         return http.build();
     }
 
