@@ -18,6 +18,9 @@ import java.time.LocalDateTime;
 @Table(name = "movies")
 public class Movie extends BaseEntity {
 
+    // TMDB 이미지 서버 주소 (posterPath 앞에 붙여 전체 URL을 만든다)
+    private static final String TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+
     // 내부 영화 PK
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -135,5 +138,13 @@ public class Movie extends BaseEntity {
                 1,
                 RoundingMode.HALF_UP
         );
+    }
+    
+    /** 포스터 전체 URL (포스터가 없으면 null) */
+    public String getPosterUrl() {
+        if (posterPath == null || posterPath.isBlank()) {
+            return null;
+        }
+        return TMDB_IMAGE_BASE_URL + posterPath;
     }
 }
