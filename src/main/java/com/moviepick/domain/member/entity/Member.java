@@ -1,14 +1,7 @@
 package com.moviepick.domain.member.entity;
 
 import com.moviepick.global.entity.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,7 +9,15 @@ import java.time.LocalDateTime;
 
 @Getter
 @Entity
-@Table(name = "members")
+@Table(
+        name = "members",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_members_email_provider",
+                        columnNames = {"email", "provider"}
+                )
+        }
+)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
 
