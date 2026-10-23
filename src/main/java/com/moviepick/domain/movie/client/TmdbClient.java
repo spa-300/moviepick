@@ -5,8 +5,12 @@ import com.moviepick.domain.movie.dto.response.TmdbPopularResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+
+import java.net.http.HttpClient;
+import java.time.Duration;
 
 @Component
 public class TmdbClient {
@@ -16,7 +20,20 @@ public class TmdbClient {
     public TmdbClient(
             @Value("${TMDB_ACCESS_TOKEN}") String token
     ) {
+        // 1. HTTP 연결 타임아웃 설정
+        HttpClient httpClient = HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(3))
+                .build();
+
+        // 2. HTTP 응답 읽기 타임아웃 설정
+        JdkClientHttpRequestFactory factory =
+                new JdkClientHttpRequestFactory(httpClient);
+
+        factory.setReadTimeout(Duration.ofSeconds(5));
+
+        // 3. TMDB RestClient 생성
         this.restClient = RestClient.builder()
+                .requestFactory(factory)
                 .baseUrl("https://api.themoviedb.org/3")
                 .defaultHeader(
                         HttpHeaders.AUTHORIZATION,
