@@ -1,16 +1,20 @@
+
 package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.admin.service.AdminMemberService;
 import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.entity.MemberStatus;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/members")
+@Validated
 public class AdminMemberController {
 
     private final AdminMemberService adminMemberService;
@@ -19,7 +23,9 @@ public class AdminMemberController {
     @GetMapping
     public ResponseEntity<Page<MemberResponse>> getMembers(
             @RequestParam(required = false) MemberStatus status,
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(defaultValue = "0")
+            @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.")
+            int page
     ) {
         Page<MemberResponse> members =
                 adminMemberService.getMembers(status, page);
