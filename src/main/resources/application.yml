@@ -45,3 +45,5 @@ portone:
 logging:
   level:
     org.hibernate.SQL: debug
+tmdb:
+  access-token: ${TMDB_ACCESS_TOKEN}
