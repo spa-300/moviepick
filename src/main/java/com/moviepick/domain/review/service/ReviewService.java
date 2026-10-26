@@ -172,7 +172,7 @@ public class ReviewService {
             return;
         }
 
-        // UPDATE로 이미 행 잠금을 잡았으므로, 잠금 조회로 최신 평점을 읽어 차감한다.
+        // UPDATE로 이미 행 잠금을 잡았으므로, 잠금 조회로 최신 평점을 읽어 차감한다..
         Review review = findReviewForUpdate(reviewId);
         movieRatingService.applyRating(review.getMovie().getId(), review.getRating().negate(), -1);
     }
