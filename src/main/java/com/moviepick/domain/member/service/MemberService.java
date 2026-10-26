@@ -7,7 +7,6 @@ import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +21,11 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
 
+
     @Transactional
     public Member getActiveMember(Long memberId) {
 
-        // 1. 회원 조회
+        // 1. 회원 조회 (존재하지 않으면 404)
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
                         new BusinessException(
@@ -36,14 +36,21 @@ public class MemberService {
         // 2. 정지 기간이 만료되었다면 자동 해제
         member.releaseSuspensionIfExpired();
 
-        // 3. ACTIVE 상태가 아니면 접근 차단
-        if (member.getStatus() != MemberStatus.ACTIVE) {
+        // 3. 정지된 회원은 접근 차단 (403)
+        if (member.getStatus() == MemberStatus.SUSPENDED) {
             throw new BusinessException(
-                    CommonErrorCode.MEMBER_SUSPENDED
+                    MemberErrorCode.MEMBER_SUSPENDED
             );
         }
 
-        // 4. 정상 회원 반환
+        // 4. 탈퇴한 회원은 접근 차단 (403)
+        if (member.getStatus() == MemberStatus.WITHDRAWN) {
+            throw new BusinessException(
+                    MemberErrorCode.MEMBER_WITHDRAWN
+            );
+        }
+
+        // 5. 정상 회원 반환
         return member;
     }
 
