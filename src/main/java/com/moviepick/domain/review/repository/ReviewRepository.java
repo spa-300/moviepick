@@ -3,6 +3,8 @@ package com.moviepick.domain.review.repository;
 import com.moviepick.domain.review.entity.Review;
 import com.moviepick.domain.review.entity.ReviewStatus;
 import jakarta.persistence.LockModeType;
+
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -66,4 +68,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Optional<Long> findIdByMemberIdAndMovieIdAndStatus(@Param("memberId") Long memberId,
                                                        @Param("movieId") Long movieId,
                                                        @Param("status") ReviewStatus status);
+
+    @Modifying(flushAutomatically = true, clearAutomatically = true)
+    @Query("update Review r set r.status = :to, r.updatedAt = :now "
+            + "where r.id = :id and r.status = :from")
+    int changeStatus(@Param("id") Long id,
+                     @Param("from") ReviewStatus from,
+                     @Param("to") ReviewStatus to,
+                     @Param("now") LocalDateTime now);
 }

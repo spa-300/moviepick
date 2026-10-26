@@ -18,12 +18,15 @@ import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.response.PageResponse;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -160,7 +163,8 @@ public class ReviewService {
      */
     @Transactional
     public void blind(Long reviewId) {
-        int changed = reviewRepository.changeStatus(reviewId, ReviewStatus.VISIBLE, ReviewStatus.BLIND);
+        int changed = reviewRepository.changeStatus(
+                reviewId, ReviewStatus.VISIBLE, ReviewStatus.BLIND, LocalDateTime.now());
         if (changed == 0) {
             if (!reviewRepository.existsById(reviewId)) {
                 throw new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND);
@@ -180,7 +184,9 @@ public class ReviewService {
                 .orElseThrow(() -> new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
     }
 
-    /** 범위·단위 검증(INVALID_RATING) 후 소수 첫째 자리로 통일 */
+    /**
+     * 범위·단위 검증(INVALID_RATING) 후 소수 첫째 자리로 통일
+     */
     private BigDecimal normalizeRating(BigDecimal rating) {
         Review.validateRating(rating);
         return rating.setScale(1, RoundingMode.UNNECESSARY);
