@@ -1,6 +1,6 @@
 package com.moviepick.domain.movie.service;
 
-import com.moviepick.domain.movie.dto.response.TmdbMovieResponse;
+import com.moviepick.domain.movie.client.dto.TmdbMovieResponse;
 import com.moviepick.domain.movie.entity.Movie;
 import com.moviepick.domain.movie.entity.MovieGenre;
 import com.moviepick.domain.movie.model.MovieInfo;

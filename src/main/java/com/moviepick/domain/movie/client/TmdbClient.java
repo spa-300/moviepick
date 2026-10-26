@@ -1,8 +1,8 @@
 
 package com.moviepick.domain.movie.client;
 
-import com.moviepick.domain.movie.dto.response.TmdbMovieResponse;
-import com.moviepick.domain.movie.dto.response.TmdbPopularResponse;
+import com.moviepick.domain.movie.client.dto.TmdbMovieResponse;
+import com.moviepick.domain.movie.client.dto.TmdbPopularResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;

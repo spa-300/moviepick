@@ -1,4 +1,4 @@
-package com.moviepick.domain.movie.dto.response;
+package com.moviepick.domain.movie.client.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

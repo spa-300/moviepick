@@ -2,10 +2,8 @@ package com.moviepick.domain.movie.service;
 
 import com.moviepick.domain.movie.client.TmdbClient;
 import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
-import com.moviepick.domain.movie.dto.response.TmdbMovieResponse;
-import com.moviepick.domain.movie.dto.response.TmdbPopularResponse;
-import com.moviepick.domain.movie.service.MovieCollectionService;
-import com.moviepick.domain.movie.service.MovieSaveService;
+import com.moviepick.domain.movie.client.dto.TmdbMovieResponse;
+import com.moviepick.domain.movie.client.dto.TmdbPopularResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
