@@ -27,11 +27,33 @@ public class JwtProvider {
     private static final long REFRESH_TOKEN_EXPIRATION =
             14 * 24 * 60 * 60 * 1000L;
 
+
     public JwtProvider(@Value("${jwt.secret}") String secret) {
-        this.secretKey = Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(secret)
-        );
+        String errorMessage =
+                "jwt.secret은 Base64 문자열이어야 하며 디코딩 후 32바이트 이상이어야 합니다.";
+
+        // 1. 비밀키가 없거나 빈 문자열인지 확인
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(errorMessage);
+        }
+
+        // 2. Base64 디코딩
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(secret);
+        } catch (RuntimeException e) {
+            throw new IllegalStateException(errorMessage);
+        }
+
+        // 3. 디코딩 후 최소 32바이트인지 확인
+        if (keyBytes.length < 32) {
+            throw new IllegalStateException(errorMessage);
+        }
+
+        // 4. 검증된 키로 JWT 서명 키 생성
+        this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
+
 
     // Access Token 생성
     public String createAccessToken(Long memberId, String role) {
