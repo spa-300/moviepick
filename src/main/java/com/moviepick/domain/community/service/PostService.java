@@ -12,9 +12,9 @@ import com.moviepick.domain.community.entity.PostStatus;
 import com.moviepick.domain.community.exception.PostErrorCode;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
+import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -37,7 +37,7 @@ public class PostService {
     public PostCreateResponse create(Long memberId, PostCreateRequest request) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
 
         Post post = Post.create(
                 member,

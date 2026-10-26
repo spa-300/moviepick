@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.exception;
 
 import com.moviepick.global.exception.ErrorCode;
@@ -20,6 +21,14 @@ public enum CommentErrorCode implements ErrorCode {
     COMMENT_INVALID_INPUT(
             HttpStatus.BAD_REQUEST,
             "댓글 입력값이 올바르지 않습니다."
+    ),
+    COMMENT_ALREADY_LIKED(
+            HttpStatus.CONFLICT,
+            "이미 좋아요를 누른 댓글입니다."
+    ),
+    COMMENT_LIKE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "댓글 좋아요를 찾을 수 없습니다."
     );
 
     private final HttpStatus status;

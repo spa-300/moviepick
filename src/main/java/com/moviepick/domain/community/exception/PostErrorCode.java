@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.community.exception;
 
 import com.moviepick.global.exception.ErrorCode;
@@ -20,6 +21,14 @@ public enum PostErrorCode implements ErrorCode {
     POST_INVALID_INPUT(
             HttpStatus.BAD_REQUEST,
             "게시글 입력값이 올바르지 않습니다."
+    ),
+    POST_ALREADY_LIKED(
+            HttpStatus.CONFLICT,
+            "이미 좋아요를 누른 게시글입니다."
+    ),
+    POST_LIKE_NOT_FOUND(
+            HttpStatus.NOT_FOUND,
+            "게시글 좋아요를 찾을 수 없습니다."
     );
 
     private final HttpStatus status;
