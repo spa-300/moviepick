@@ -2,8 +2,8 @@ package com.moviepick.domain.movie.service;
 
 import com.moviepick.domain.movie.client.TmdbClient;
 import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
-import com.moviepick.domain.movie.dto.response.TmdbMovieResponse;
-import com.moviepick.domain.movie.dto.response.TmdbPopularResponse;
+import com.moviepick.domain.movie.client.dto.TmdbMovieResponse;
+import com.moviepick.domain.movie.client.dto.TmdbPopularResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
