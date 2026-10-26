@@ -1,6 +1,7 @@
 package com.moviepick.domain.movie.service;
 
 import com.moviepick.domain.movie.client.TmdbClient;
+import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
 import com.moviepick.domain.movie.dto.response.TmdbMovieResponse;
 import com.moviepick.domain.movie.dto.response.TmdbPopularResponse;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,6 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-// TMDB 영화 데이터 수집
 public class MovieCollectionService {
 
     private static final int MAX_PAGES = 100;
@@ -21,8 +21,16 @@ public class MovieCollectionService {
     private final TmdbClient tmdbClient;
     private final MovieSaveService movieSaveService;
 
-    // 인기 영화 수집
+    // 기존 public 메서드 유지
     public int collectPopularMovies(int requestedPages) {
+        return collectPopularMoviesWithResult(requestedPages)
+                .savedCount();
+    }
+
+    // 수집 결과를 성공·실패 건수와 함께 반환
+    public MovieSyncResponse collectPopularMoviesWithResult(
+            int requestedPages
+    ) {
 
         if (requestedPages < 1 || requestedPages > MAX_PAGES) {
             throw new IllegalArgumentException(
@@ -31,70 +39,101 @@ public class MovieCollectionService {
         }
 
         int savedCount = 0;
+        int failedCount = 0;
+
         Set<Long> processedIds = new HashSet<>();
 
-        // 1. 요청한 페이지 수만큼 반복
         for (int page = 1; page <= requestedPages; page++) {
 
-            // 2. 인기 영화 목록 조회
-            TmdbPopularResponse popular =
-                    tmdbClient.getPopularMovies(page);
+            // 1. 인기 영화 목록 호출
+            TmdbPopularResponse popular;
+
+            try {
+                popular = tmdbClient.getPopularMovies(page);
+            } catch (RuntimeException e) {
+                log.warn(
+                        "TMDB 인기 영화 목록 조회 실패: page={}, reason={}",
+                        page, e.getMessage()
+                );
+
+                // 목록 조회 실패 시 지금까지의 결과 반환
+                break;
+            }
+
+            if (popular == null || popular.results() == null) {
+                log.warn(
+                        "TMDB 인기 영화 목록 응답이 비어 있음: page={}",
+                        page
+                );
+                break;
+            }
 
             if (popular.results().isEmpty()) {
                 break;
             }
 
-            // 3. 해당 페이지의 영화 순회
+            // 2. 영화별 상세 조회 및 DB 저장
             for (TmdbPopularResponse.MovieSummary summary
                     : popular.results()) {
 
                 if (summary == null || summary.id() == null) {
-                    log.warn("영화 ID가 없는 목록 항목 건너뛰기");
+                    log.warn(
+                            "TMDB 영화 ID가 없는 목록 항목: page={}",
+                            page
+                    );
+                    failedCount++;
                     continue;
                 }
 
                 Long tmdbId = summary.id();
 
-                // 이번 수집 실행에서 중복된 영화는 건너뛰기
+                // 동일한 수집 실행에서 중복 영화 처리 방지
                 if (!processedIds.add(tmdbId)) {
                     continue;
                 }
 
                 try {
-                    // 4. 영화 상세 정보 조회
                     TmdbMovieResponse detail =
                             tmdbClient.getMovieDetail(tmdbId);
 
-                    // 5. 영화 DB 저장 또는 갱신
+                    // 영화 1편 단위 트랜잭션
                     movieSaveService.saveOne(detail);
 
                     savedCount++;
 
                 } catch (RuntimeException e) {
-                    log.error(
-                            "영화 수집 실패: page={}, tmdbId={}",
-                            page, tmdbId, e
+                    failedCount++;
+
+                    log.warn(
+                            "영화 수집 실패: page={}, tmdbId={}, reason={}",
+                            page, tmdbId, e.getMessage()
                     );
 
-                    // 오류 발생 시 이번 수집 중단
-                    throw e;
+                    // 실패한 영화는 건너뛰고 다음 영화 진행
                 }
             }
 
             log.info(
-                    "영화 수집 진행: page={}, 처리 성공={}편",
-                    page, savedCount
+                    "영화 수집 진행: page={}, 성공={}, 실패={}",
+                    page, savedCount, failedCount
             );
 
-            // TMDB가 제공하는 마지막 페이지에 도달하면 종료
+            // TMDB 마지막 페이지 확인
             if (popular.totalPages() != null
                     && page >= popular.totalPages()) {
                 break;
             }
         }
 
-        log.info("영화 수집 완료: 총 {}편 처리", savedCount);
+        log.info(
+                "영화 수집 완료: 요청 페이지={}, 성공={}, 실패={}",
+                requestedPages, savedCount, failedCount
+        );
 
-        return savedCount;
+        return new MovieSyncResponse(
+                requestedPages,
+                savedCount,
+                failedCount
+        );
     }
 }
