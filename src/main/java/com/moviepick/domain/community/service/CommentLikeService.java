@@ -6,6 +6,7 @@ import com.moviepick.domain.community.entity.Comment;
 import com.moviepick.domain.community.entity.CommentLike;
 import com.moviepick.domain.community.entity.CommentStatus;
 import com.moviepick.domain.community.entity.PostStatus;
+import com.moviepick.domain.community.exception.CommentErrorCode;
 import com.moviepick.domain.community.repository.CommentLikeRepository;
 import com.moviepick.domain.community.repository.CommentRepository;
 import com.moviepick.domain.member.entity.Member;
@@ -13,6 +14,8 @@ import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +23,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentLikeService {
+
+    private static final String COMMENT_LIKE_UNIQUE_CONSTRAINT =
+            "uk_comment_like_member";
 
     private final CommentLikeRepository commentLikeRepository;
     private final CommentRepository commentRepository;
@@ -37,11 +43,22 @@ public class CommentLikeService {
         // 이미 좋아요를 등록한 경우
         if (commentLikeRepository.existsByCommentIdAndMemberId(
                 commentId, memberId)) {
-            throw new BusinessException(CommonErrorCode.ALREADY_LIKED);
+            throw new BusinessException(
+                    CommentErrorCode.COMMENT_ALREADY_LIKED);
         }
 
         CommentLike commentLike = CommentLike.create(comment, member);
-        commentLikeRepository.save(commentLike);
+
+        try {
+            commentLikeRepository.saveAndFlush(commentLike);
+        } catch (DataIntegrityViolationException exception) {
+            if (isCommentLikeUniqueConstraintViolation(exception)) {
+                throw new BusinessException(
+                        CommentErrorCode.COMMENT_ALREADY_LIKED);
+            }
+
+            throw exception;
+        }
 
         long likeCount = commentLikeRepository.countByCommentId(commentId);
 
@@ -56,7 +73,8 @@ public class CommentLikeService {
         CommentLike commentLike = commentLikeRepository
                 .findByCommentIdAndMemberId(commentId, memberId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.LIKE_NOT_FOUND));
+                        new BusinessException(
+                                CommentErrorCode.COMMENT_LIKE_NOT_FOUND));
 
         commentLikeRepository.delete(commentLike);
 
@@ -82,13 +100,33 @@ public class CommentLikeService {
     private Comment findVisibleComment(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(
+                                CommentErrorCode.COMMENT_NOT_FOUND));
 
         if (comment.getStatus() != CommentStatus.VISIBLE
                 || comment.getPost().getStatus() != PostStatus.VISIBLE) {
-            throw new BusinessException(CommonErrorCode.NOT_FOUND);
+            throw new BusinessException(
+                    CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
         return comment;
+    }
+
+    // 댓글 좋아요 유니크 제약 위반인지 확인
+    private boolean isCommentLikeUniqueConstraintViolation(
+            DataIntegrityViolationException exception
+    ) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException constraintException) {
+                return COMMENT_LIKE_UNIQUE_CONSTRAINT.equals(
+                        constraintException.getConstraintName());
+            }
+
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 }
