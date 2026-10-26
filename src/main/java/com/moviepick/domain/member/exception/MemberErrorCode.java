@@ -33,11 +33,18 @@ public enum MemberErrorCode implements ErrorCode {
             "정지된 회원입니다."
     ),
 
-    // 로그인 - 탈퇴한 회원
+
     MEMBER_WITHDRAWN(
             HttpStatus.FORBIDDEN,
             "탈퇴한 회원입니다."
+    ),
+
+    // 정지 상태가 아닌 회원에게 정지 해제를 요청한 경우
+    MEMBER_NOT_SUSPENDED(
+            HttpStatus.CONFLICT,
+            "정지 상태가 아닌 회원입니다."
     );
+
 
     private final HttpStatus status;
     private final String message;
