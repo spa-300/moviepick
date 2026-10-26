@@ -138,11 +138,11 @@ public class SecurityConfig {
                                 "/api/movies/*"
                         ).permitAll()
 
-                        // 리뷰 조회
+                        // 영화별 리뷰 목록 및 전체 리뷰 목록 조회
                         .requestMatchers(
                                 HttpMethod.GET,
-                                "/api/reviews",
-                                "/api/reviews/*"
+                                "/api/movies/*/reviews",
+                                "/api/movies/reviews"
                         ).permitAll()
 
                         // 커뮤니티 게시글 및 댓글 조회
@@ -151,6 +151,12 @@ public class SecurityConfig {
                                 "/api/community/posts",
                                 "/api/community/posts/*",
                                 "/api/community/posts/*/comments"
+                        ).permitAll()
+
+                        // 게시글 좋아요 수 조회
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/community/posts/*/likes"
                         ).permitAll()
 
                         // PortOne 결제 웹훅
