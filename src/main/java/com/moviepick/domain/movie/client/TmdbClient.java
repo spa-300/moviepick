@@ -1,3 +1,4 @@
+
 package com.moviepick.domain.movie.client;
 
 import com.moviepick.domain.movie.dto.response.TmdbMovieResponse;
@@ -17,9 +18,7 @@ public class TmdbClient {
 
     private final RestClient restClient;
 
-    public TmdbClient(
-            @Value("${TMDB_ACCESS_TOKEN}") String token
-    ) {
+    public TmdbClient(@Value("${tmdb.access-token}") String token) {
         // 1. HTTP 연결 타임아웃 설정
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(3))
