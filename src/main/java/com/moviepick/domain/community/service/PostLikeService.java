@@ -5,6 +5,7 @@ import com.moviepick.domain.community.dto.response.PostLikeResponse;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.entity.PostLike;
 import com.moviepick.domain.community.entity.PostStatus;
+import com.moviepick.domain.community.exception.PostErrorCode;
 import com.moviepick.domain.community.repository.PostLikeRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
@@ -12,6 +13,8 @@ import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class PostLikeService {
+
+    private static final String POST_LIKE_UNIQUE_CONSTRAINT =
+            "uk_post_like_member";
 
     private final PostLikeRepository postLikeRepository;
     private final PostRepository postRepository;
@@ -34,11 +40,21 @@ public class PostLikeService {
                         new BusinessException(CommonErrorCode.NOT_FOUND));
 
         if (postLikeRepository.existsByPostIdAndMemberId(postId, memberId)) {
-            throw new BusinessException(CommonErrorCode.ALREADY_LIKED);
+            throw new BusinessException(PostErrorCode.POST_ALREADY_LIKED);
         }
 
         PostLike postLike = PostLike.create(post, member);
-        postLikeRepository.save(postLike);
+
+        try {
+            // 유니크 제약 위반을 이 메서드 안에서 확인한다.
+            postLikeRepository.saveAndFlush(postLike);
+        } catch (DataIntegrityViolationException exception) {
+            if (isPostLikeUniqueConstraintViolation(exception)) {
+                throw new BusinessException(PostErrorCode.POST_ALREADY_LIKED);
+            }
+
+            throw exception;
+        }
 
         long likeCount = postLikeRepository.countByPostId(postId);
 
@@ -53,7 +69,8 @@ public class PostLikeService {
         PostLike postLike = postLikeRepository
                 .findByPostIdAndMemberId(post.getId(), memberId)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.LIKE_NOT_FOUND));
+                        new BusinessException(
+                                PostErrorCode.POST_LIKE_NOT_FOUND));
 
         postLikeRepository.delete(postLike);
 
@@ -77,6 +94,24 @@ public class PostLikeService {
     private Post findVisiblePost(Long postId) {
         return postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
-                        new BusinessException(CommonErrorCode.NOT_FOUND));
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
+    }
+
+    // 게시글 좋아요 유니크 제약 위반인지 확인
+    private boolean isPostLikeUniqueConstraintViolation(
+            DataIntegrityViolationException exception
+    ) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            if (cause instanceof ConstraintViolationException constraintException) {
+                return POST_LIKE_UNIQUE_CONSTRAINT.equals(
+                        constraintException.getConstraintName());
+            }
+
+            cause = cause.getCause();
+        }
+
+        return false;
     }
 }
