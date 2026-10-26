@@ -86,7 +86,9 @@ public class Member extends BaseEntity {
         member.provider = provider;
         member.providerId = providerId;
         member.email = email;
-        member.nickname = nickname;
+        member.nickname = nickname.length() > 50
+                ? nickname.substring(0, 50)
+                : nickname;
         member.role = Role.USER;
         member.status = MemberStatus.ACTIVE;
         return member;
