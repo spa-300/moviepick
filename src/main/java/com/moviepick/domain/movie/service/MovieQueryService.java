@@ -6,6 +6,8 @@ import com.moviepick.domain.movie.entity.Movie;
 import com.moviepick.domain.movie.entity.MovieGenre;
 import com.moviepick.domain.movie.repository.MovieGenreRepository;
 import com.moviepick.domain.movie.repository.MovieRepository;
+import com.moviepick.global.exception.BusinessException;
+import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,20 +49,19 @@ public class MovieQueryService {
     }
 
     // 영화 상세 조회
-    public MovieDetailResponse getMovie(Long movieId) {
+    public MovieDetailResponse getMovie(Long movieId, Long myReviewId) {
 
         Movie movie = movieRepository
                 .findByIdAndActiveTrue(movieId)
                 .orElseThrow(() ->
-                        new ResponseStatusException(
-                                HttpStatus.NOT_FOUND,
-                                "영화를 찾을 수 없습니다."
+                        new BusinessException(
+                                CommonErrorCode.NOT_FOUND
                         )
                 );
 
         List<MovieGenre> genres =
                 movieGenreRepository.findAllByMovie_Id(movieId);
 
-        return MovieDetailResponse.from(movie, genres);
+        return MovieDetailResponse.from(movie, genres, myReviewId);
     }
 }
