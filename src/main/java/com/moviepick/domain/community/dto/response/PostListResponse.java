@@ -2,6 +2,7 @@
 package com.moviepick.domain.community.dto.response;
 
 import com.moviepick.domain.community.entity.Post;
+import com.moviepick.domain.member.entity.MemberStatus;
 
 import java.time.LocalDateTime;
 
@@ -26,7 +27,9 @@ public record PostListResponse(
                 post.getTitle(),
                 new Author(
                         post.getMember().getId(),
-                        post.getMember().getNickname()
+                        post.getMember().getStatus() == MemberStatus.WITHDRAWN
+                                ? "탈퇴한 회원"
+                                : post.getMember().getNickname()
                 ),
                 likeCount,
                 post.getCommentCount(),
