@@ -204,6 +204,9 @@ public class PostService {
 
         post.update(title, content);
 
+// updatedAt을 DB에 반영한 후 응답 생성
+        postRepository.flush();
+
         return PostUpdateResponse.from(post);
     }
 
