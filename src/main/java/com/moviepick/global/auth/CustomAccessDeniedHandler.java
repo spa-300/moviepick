@@ -1,16 +1,18 @@
 package com.moviepick.global.auth;
 
+import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.global.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.csrf.CsrfException;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -26,22 +28,21 @@ public class CustomAccessDeniedHandler
             AccessDeniedException accessDeniedException
     ) throws IOException {
 
+        // CSRF 토큰이 없거나 틀린 경우는 오류 이름으로 다른 403과 구분
+        CommonErrorCode errorCode = accessDeniedException instanceof CsrfException
+                ? CommonErrorCode.CSRF_INVALID
+                : CommonErrorCode.FORBIDDEN;
+
         // 접근 권한이 부족하면 403 반환
         response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 
-        // JSON 형식으로 응답
+        // 공통 응답 모양(JSON)으로 응답
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        // 오류 응답 생성
-        Map<String, Object> errorResponse = Map.of(
-                "status", 403,
-                "message", "해당 요청에 접근할 권한이 없습니다."
-        );
-
         objectMapper.writeValue(
                 response.getWriter(),
-                errorResponse
+                ApiResponse.error(errorCode)
         );
     }
 }
