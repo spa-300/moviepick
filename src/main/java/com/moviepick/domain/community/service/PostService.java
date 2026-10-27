@@ -41,7 +41,7 @@ public class PostService {
 
         Post post = Post.create(
                 member,
-                request.title(),
+                request.title().trim(),
                 request.content()
         );
 
@@ -63,48 +63,33 @@ public class PostService {
         boolean hasKeyword = q != null && !q.isBlank();
         String keyword = hasKeyword ? q.trim() : null;
 
-        Page<Post> posts;
+        // 검색어의 %, _, \를 LIKE 검색의 일반 문자로 처리
+        if (keyword != null) {
+            keyword = keyword
+                    .replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
+        }
 
-        if (hasKeyword && "popular".equalsIgnoreCase(sortType)) {
-            // 검색 결과 인기순
-            posts = postRepository.searchPopularPosts(
-                    PostStatus.VISIBLE,
-                    keyword,
-                    PageRequest.of(
-                            pageable.getPageNumber(),
-                            pageable.getPageSize()
-                    )
-            );
-        } else if ("popular".equalsIgnoreCase(sortType)) {
-            // 전체 게시글 인기순
-            posts = postRepository.findPopularPosts(
-                    PostStatus.VISIBLE,
-                    PageRequest.of(
-                            pageable.getPageNumber(),
-                            pageable.getPageSize()
-                    )
-            );
-        } else {
-            // 최신순: 게시글과 좋아요 수를 함께 조회
+        // 인기순: 게시글과 좋아요 수를 함께 조회
+        if ("popular".equalsIgnoreCase(sortType)) {
             Page<Object[]> results;
 
             if (hasKeyword) {
-                results = postRepository.searchWithLikeCount(
+                results = postRepository.searchPopularPostsWithLikeCount(
                         PostStatus.VISIBLE,
                         keyword,
                         PageRequest.of(
                                 pageable.getPageNumber(),
-                                pageable.getPageSize(),
-                                Sort.by(Sort.Direction.DESC, "createdAt")
+                                pageable.getPageSize()
                         )
                 );
             } else {
-                results = postRepository.findAllWithLikeCountByStatus(
+                results = postRepository.findPopularPostsWithLikeCount(
                         PostStatus.VISIBLE,
                         PageRequest.of(
                                 pageable.getPageNumber(),
-                                pageable.getPageSize(),
-                                Sort.by(Sort.Direction.DESC, "createdAt")
+                                pageable.getPageSize()
                         )
                 );
             }
@@ -117,13 +102,36 @@ public class PostService {
             });
         }
 
-        // 인기순 조회는 기존 정렬 로직 유지
-        return posts.map(post ->
-                PostListResponse.from(
-                        post,
-                        postLikeService.getLikeCount(post.getId())
-                )
-        );
+        // 최신순: 게시글과 좋아요 수를 함께 조회
+        Page<Object[]> results;
+
+        if (hasKeyword) {
+            results = postRepository.searchWithLikeCount(
+                    PostStatus.VISIBLE,
+                    keyword,
+                    PageRequest.of(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            Sort.by(Sort.Direction.DESC, "createdAt")
+                    )
+            );
+        } else {
+            results = postRepository.findAllWithLikeCountByStatus(
+                    PostStatus.VISIBLE,
+                    PageRequest.of(
+                            pageable.getPageNumber(),
+                            pageable.getPageSize(),
+                            Sort.by(Sort.Direction.DESC, "createdAt")
+                    )
+            );
+        }
+
+        return results.map(row -> {
+            Post post = (Post) row[0];
+            long likeCount = ((Number) row[1]).longValue();
+
+            return PostListResponse.from(post, likeCount);
+        });
     }
 
     // 게시글 상세 조회
@@ -187,7 +195,7 @@ public class PostService {
 
         // 전달된 필드만 수정하고 생략한 필드는 기존 값 유지
         String title = request.title() != null
-                ? request.title()
+                ? request.title().trim()
                 : post.getTitle();
 
         String content = request.content() != null
@@ -195,6 +203,9 @@ public class PostService {
                 : post.getContent();
 
         post.update(title, content);
+
+        // updatedAt을 DB에 반영한 후 응답 생성
+        postRepository.flush();
 
         return PostUpdateResponse.from(post);
     }

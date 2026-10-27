@@ -10,10 +10,10 @@ import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
-import org.springframework.dao.DataIntegrityViolationException;
 import com.moviepick.global.exception.CommonErrorCode;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +27,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
-
-    // 회원가입
 
     // 회원가입
     @Transactional
@@ -48,11 +46,11 @@ public class AuthService {
         String encodedPassword =
                 passwordEncoder.encode(request.password());
 
-        // LOCAL 회원 생성
+        // LOCAL 회원 생성: 닉네임 앞뒤 공백 제거
         Member member = Member.createLocal(
                 request.email(),
                 encodedPassword,
-                request.nickname()
+                request.nickname().trim()
         );
 
         try {
@@ -62,13 +60,41 @@ public class AuthService {
             return MemberResponse.from(savedMember);
 
         } catch (DataIntegrityViolationException e) {
-            // 동시 회원가입으로 UNIQUE 제약조건에 걸린 경우
-            throw new BusinessException(
-                    MemberErrorCode.DUPLICATE_EMAIL
-            );
+            // 실제 이메일 + provider 복합 UNIQUE 제약조건 위반인 경우만 처리
+            if (isDuplicateEmailConstraintViolation(e)) {
+                throw new BusinessException(
+                        MemberErrorCode.DUPLICATE_EMAIL
+                );
+            }
+
+            // 그 외 DB 무결성 오류는 중복 이메일로 위장하지 않음
+            throw e;
         }
     }
 
+    /**
+     * DB에서 발생한 제약조건 위반이 이메일 중복인지 확인한다.
+     * 프로젝트의 DB 종류와 드라이버에 따라 예외 메시지가 다를 수 있으므로
+     * 실제 운영 환경의 제약조건 정보를 확인해야 한다.
+     */
+    private boolean isDuplicateEmailConstraintViolation(
+            DataIntegrityViolationException exception
+    ) {
+        Throwable cause = exception;
+
+        while (cause != null) {
+            String message = cause.getMessage();
+
+            if (message != null
+                    && message.contains("uk_members_email_provider")) {
+                return true;
+            }
+
+            cause = cause.getCause();
+        }
+
+        return false;
+    }
 
     // 로그인
     @Transactional
@@ -82,17 +108,17 @@ public class AuthService {
                 .orElseThrow(() -> new BusinessException(
                         MemberErrorCode.INVALID_CREDENTIALS
                 ));
+
         // 2. 비밀번호 검증
-        if (member.getPasswordHash() == null ||
-                !passwordEncoder.matches(
-                        request.password(),
-                        member.getPasswordHash()
-                )) {
+        if (member.getPasswordHash() == null
+                || !passwordEncoder.matches(
+                request.password(),
+                member.getPasswordHash()
+        )) {
             throw new BusinessException(
                     MemberErrorCode.INVALID_CREDENTIALS
             );
         }
-
 
         // 3. 정지 기간이 만료되었다면 자동 해제
         member.releaseSuspensionIfExpired();
@@ -104,45 +130,40 @@ public class AuthService {
             );
         }
 
-
         if (member.getStatus() == MemberStatus.WITHDRAWN) {
             throw new BusinessException(
                     MemberErrorCode.MEMBER_WITHDRAWN
             );
         }
 
-        // 4. Access Token 생성
+        // 5. Access Token 생성
         String accessToken = jwtProvider.createAccessToken(
                 member.getId(),
                 member.getRole().name()
         );
 
-
-        // 5. 회원의 현재 인증 버전 조회
+        // 6. 회원의 현재 인증 버전 조회
         long authVersion =
                 refreshTokenService.getAuthVersion(member.getId());
 
-        // 6. 인증 버전이 포함된 Refresh Token 생성
+        // 7. 인증 버전이 포함된 Refresh Token 생성
         String refreshToken = jwtProvider.createRefreshToken(
                 member.getId(),
                 authVersion
         );
 
-
-        // 6. Redis에 Refresh Token 저장
+        // 8. Redis에 Refresh Token 저장
         refreshTokenService.save(
                 member.getId(),
                 refreshToken
         );
 
-        // 7. 로그인 응답 생성
+        // 9. 로그인 응답 생성
         LoginResponse loginResponse =
                 LoginResponse.of(member, accessToken);
 
-        // 8. Access Token 응답과 Refresh Token 함께 반환
+        // 10. Access Token 응답과 Refresh Token 함께 반환
         return new LoginResult(loginResponse, refreshToken);
-
-
     }
 
     // 로그아웃
@@ -156,7 +177,6 @@ public class AuthService {
         // Redis에 저장된 Refresh Token 삭제
         refreshTokenService.delete(refreshToken);
     }
-
 
     // Access Token 재발급
     @Transactional
