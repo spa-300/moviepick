@@ -1,4 +1,3 @@
-
 package com.moviepick.domain.community.repository;
 
 import com.moviepick.domain.community.entity.Post;
@@ -27,8 +26,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             FROM Post p
             WHERE p.status = :status
               AND (
-                  LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                  OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                  LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                  OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
               )
             """)
     Page<Post> searchByKeyword(
@@ -66,8 +65,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     LEFT JOIN PostLike pl ON pl.post = p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     GROUP BY p
                     ORDER BY COUNT(pl.id) DESC, p.createdAt DESC
@@ -77,12 +76,63 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     FROM Post p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     """
     )
     Page<Post> searchPopularPosts(
+            @Param("status") PostStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+
+    // 전체 게시글 인기순 조회: 게시글과 좋아요 수를 함께 조회
+    @Query(
+            value = """
+                    SELECT p, COUNT(pl.id)
+                    FROM Post p
+                    LEFT JOIN PostLike pl ON pl.post = p
+                    WHERE p.status = :status
+                    GROUP BY p
+                    ORDER BY COUNT(pl.id) DESC, p.createdAt DESC
+                    """,
+            countQuery = """
+                    SELECT COUNT(p)
+                    FROM Post p
+                    WHERE p.status = :status
+                    """
+    )
+    Page<Object[]> findPopularPostsWithLikeCount(
+            @Param("status") PostStatus status,
+            Pageable pageable
+    );
+
+    // 검색 결과 인기순 조회: 게시글과 좋아요 수를 함께 조회
+    @Query(
+            value = """
+                    SELECT p, COUNT(pl.id)
+                    FROM Post p
+                    LEFT JOIN PostLike pl ON pl.post = p
+                    WHERE p.status = :status
+                      AND (
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                      )
+                    GROUP BY p
+                    ORDER BY COUNT(pl.id) DESC, p.createdAt DESC
+                    """,
+            countQuery = """
+                    SELECT COUNT(p)
+                    FROM Post p
+                    WHERE p.status = :status
+                      AND (
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                      )
+                    """
+    )
+    Page<Object[]> searchPopularPostsWithLikeCount(
             @Param("status") PostStatus status,
             @Param("keyword") String keyword,
             Pageable pageable
@@ -117,8 +167,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     LEFT JOIN PostLike pl ON pl.post = p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     GROUP BY p
                     ORDER BY p.createdAt DESC
@@ -128,8 +178,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     FROM Post p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     """
     )
@@ -149,30 +199,30 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
-        UPDATE Post p
-        SET p.viewCount = p.viewCount + 1
-        WHERE p.id = :id
-        """)
+            UPDATE Post p
+            SET p.viewCount = p.viewCount + 1
+            WHERE p.id = :id
+            """)
     int increaseViewCount(@Param("id") Long id);
 
     // 댓글 수 원자적 증가
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
-        UPDATE Post p
-        SET p.commentCount = p.commentCount + 1
-        WHERE p.id = :id
-        """)
+            UPDATE Post p
+            SET p.commentCount = p.commentCount + 1
+            WHERE p.id = :id
+            """)
     int increaseCommentCount(@Param("id") Long id);
 
     // 댓글 수 원자적 감소
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     @Transactional
     @Query("""
-        UPDATE Post p
-        SET p.commentCount = p.commentCount - 1
-        WHERE p.id = :id
-          AND p.commentCount > 0
-        """)
+            UPDATE Post p
+            SET p.commentCount = p.commentCount - 1
+            WHERE p.id = :id
+              AND p.commentCount > 0
+            """)
     int decreaseCommentCount(@Param("id") Long id);
 }
