@@ -12,7 +12,10 @@ public record AdminReportResponse(
         Long targetId,
         String reason,
         String detail,
-        ReportStatus status
+        ReportStatus status,
+        String postTitle,
+        String postContentPreview,
+        String authorNickname
 ) {
 
     public static AdminReportResponse from(CommunityReport report) {
@@ -23,7 +26,30 @@ public record AdminReportResponse(
                 report.getTargetId(),
                 report.getReason(),
                 report.getDetail(),
-                report.getStatus()
+                report.getStatus(),
+                null,
+                null,
+                null
+        );
+    }
+
+    public static AdminReportResponse from(
+            CommunityReport report,
+            String postTitle,
+            String postContentPreview,
+            String authorNickname
+    ) {
+        return new AdminReportResponse(
+                report.getId(),
+                report.getReporter().getId(),
+                report.getTargetType(),
+                report.getTargetId(),
+                report.getReason(),
+                report.getDetail(),
+                report.getStatus(),
+                postTitle,
+                postContentPreview,
+                authorNickname
         );
     }
 }
