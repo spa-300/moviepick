@@ -76,4 +76,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
                      @Param("from") ReviewStatus from,
                      @Param("to") ReviewStatus to,
                      @Param("now") LocalDateTime now);
+
+    // 공개 상태일 때만 +1. 바뀐 줄이 0이면 삭제·숨김된 리뷰
+    @Modifying(flushAutomatically = true)
+    @Query("update Review r set r.likeCount = r.likeCount + 1 "
+            + "where r.id = :id and r.status = :status")
+    int increaseLikeCountIfStatus(@Param("id") Long id, @Param("status") ReviewStatus status);
 }
