@@ -49,11 +49,11 @@ public class CommentService {
                 .orElseThrow(() ->
                         new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
+        // 댓글 수 원자적 증가를 먼저 실행해 게시글 줄 쓰기 잠금을 먼저 잡는다 (insert가 실패하면 함께 롤백)
+        postRepository.increaseCommentCount(postId);
+
         Comment comment = Comment.create(post, member, request.content());
         Comment savedComment = commentRepository.save(comment);
-
-        // 댓글 수 원자적 증가
-        postRepository.increaseCommentCount(postId);
 
         return CommentCreateResponse.from(savedComment);
     }

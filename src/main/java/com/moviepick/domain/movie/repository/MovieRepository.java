@@ -1,9 +1,11 @@
 package com.moviepick.domain.movie.repository;
 
 import com.moviepick.domain.movie.entity.Movie;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,6 +29,11 @@ public interface MovieRepository extends JpaRepository<Movie, Long> {
             String title,
             Pageable pageable
     );
+
+    // 리뷰 작성 시 같은 영화의 작성을 한 줄로 세우기 위한 쓰기 잠금 조회
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select m from Movie m where m.id = :id")
+    Optional<Movie> findByIdForUpdate(@Param("id") Long id);
 
     @Modifying(flushAutomatically = true)
     @Query("""

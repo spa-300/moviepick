@@ -36,18 +36,24 @@ public class ReviewLikeService {
         }
 
         Member member = memberService.getMember(memberId);   // [수정] getActiveMember → getMember
+
+        // 좋아요 수 +1을 먼저 실행해 리뷰 줄 쓰기 잠금을 먼저 잡는다 (데드락 방지).
+        // 공개 상태일 때만 바뀌므로, 동시에 삭제·숨김된 리뷰면 0건 → 404
+        int updated = reviewRepository.increaseLikeCountIfStatus(reviewId, ReviewStatus.VISIBLE);
+        if (updated == 0) {
+            throw new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND);
+        }
+
         try {
             reviewLikeRepository.saveAndFlush(ReviewLike.create(review, member));
         } catch (DataIntegrityViolationException e) {
-            // 중복 요청: 유니크 제약(member_id, review_id)만 409로 바꾸고, 다른 제약 위반은 그대로 던진다
+            // 중복이면 409. 앞의 +1은 같은 트랜잭션이라 함께 롤백된다
             if (isDuplicateLike(e)) {
                 throw new BusinessException(ReviewErrorCode.ALREADY_LIKED);
             }
             throw e;
         }
 
-        // INSERT 성공 후에만 원자적으로 +1. 이후 예외가 나면 INSERT와 함께 롤백된다 (같은 트랜잭션)
-        reviewRepository.increaseLikeCount(reviewId);
         return new LikeResponse(true, reviewRepository.findLikeCountById(reviewId));
     }
 

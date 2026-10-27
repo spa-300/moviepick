@@ -36,6 +36,11 @@ public class CommentLikeService {
     public CommentLikeResponse addLike(Long memberId, Long commentId) {
         Comment comment = findVisibleComment(commentId);
 
+        // 본인 댓글 좋아요 금지 (리뷰와 같은 400)
+        if (comment.getMember().getId().equals(memberId)) {
+            throw new BusinessException(CommentErrorCode.CANNOT_LIKE_OWN_COMMENT);
+        }
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
                         new BusinessException(CommonErrorCode.NOT_FOUND));
@@ -120,8 +125,9 @@ public class CommentLikeService {
 
         while (cause != null) {
             if (cause instanceof ConstraintViolationException constraintException) {
-                return COMMENT_LIKE_UNIQUE_CONSTRAINT.equals(
-                        constraintException.getConstraintName());
+                String name = constraintException.getConstraintName();
+                return name != null
+                        && name.toLowerCase().contains(COMMENT_LIKE_UNIQUE_CONSTRAINT);
             }
 
             cause = cause.getCause();
