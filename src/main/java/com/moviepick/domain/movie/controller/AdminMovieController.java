@@ -22,7 +22,7 @@ public class AdminMovieController {
     public ApiResponse<MovieSyncResponse> syncMovies(
             @RequestParam
             @Min(1)
-            @Max(100)
+            @Max(5)
             int pages
     ) {
 

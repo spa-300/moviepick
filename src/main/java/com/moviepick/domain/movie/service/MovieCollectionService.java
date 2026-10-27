@@ -21,7 +21,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class MovieCollectionService {
 
-    private static final int MAX_PAGES = 100;
+    private static final int MAX_PAGES = 5;
 
     private final TmdbClient tmdbClient;
     private final MovieSaveService movieSaveService;
@@ -38,8 +38,8 @@ public class MovieCollectionService {
     ) {
 
         if (requestedPages < 1 || requestedPages > MAX_PAGES) {
-            throw new IllegalArgumentException(
-                    "수집 페이지는 1~100 사이여야 합니다."
+            throw new BusinessException(
+                    CommonErrorCode.INVALID_INPUT
             );
         }
 
