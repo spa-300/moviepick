@@ -29,6 +29,10 @@ public enum CommentErrorCode implements ErrorCode {
     COMMENT_LIKE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "댓글 좋아요를 찾을 수 없습니다."
+    ),
+    CANNOT_LIKE_OWN_COMMENT(
+            HttpStatus.BAD_REQUEST,
+            "본인의 댓글에는 좋아요할 수 없습니다."
     );
 
     private final HttpStatus status;

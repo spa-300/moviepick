@@ -44,4 +44,20 @@ public interface CommunityReportRepository
             @Param("newStatus") ReportStatus newStatus,
             @Param("pendingStatus") ReportStatus pendingStatus
     );
+
+    // 동일 게시글 또는 댓글의 대기 중인 신고를 일괄 처리
+    @Modifying(flushAutomatically = true)
+    @Query("""
+        UPDATE CommunityReport r
+        SET r.status = :newStatus
+        WHERE r.targetType = :targetType
+          AND r.targetId = :targetId
+          AND r.status = :pendingStatus
+        """)
+    int updateAllPendingByTarget(
+            @Param("targetType") ReportTargetType targetType,
+            @Param("targetId") Long targetId,
+            @Param("newStatus") ReportStatus newStatus,
+            @Param("pendingStatus") ReportStatus pendingStatus
+    );
 }

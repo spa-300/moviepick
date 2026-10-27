@@ -91,6 +91,11 @@ public class Post extends BaseEntity {
         this.status = PostStatus.DELETED;
     }
 
+    // 관리자: 신고 승인 또는 수동 조치로 게시글 숨김
+    public void blind() {
+        this.status = PostStatus.BLINDED;
+    }
+
     // 댓글 수 증가
     public void increaseCommentCount() {
         this.commentCount++;
