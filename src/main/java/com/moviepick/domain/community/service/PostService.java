@@ -1,4 +1,3 @@
-
 package com.moviepick.domain.community.service;
 
 import com.moviepick.domain.community.dto.request.PostCreateRequest;
@@ -41,7 +40,7 @@ public class PostService {
 
         Post post = Post.create(
                 member,
-                request.title(),
+                request.title().trim(),
                 request.content()
         );
 
@@ -62,6 +61,14 @@ public class PostService {
 
         boolean hasKeyword = q != null && !q.isBlank();
         String keyword = hasKeyword ? q.trim() : null;
+
+        // 검색어의 %, _, \를 LIKE 검색의 일반 문자로 처리
+        if (keyword != null) {
+            keyword = keyword
+                    .replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_");
+        }
 
         Page<Post> posts;
 
@@ -186,8 +193,9 @@ public class PostService {
         }
 
         // 전달된 필드만 수정하고 생략한 필드는 기존 값 유지
+        // 새 제목은 앞뒤 공백 제거
         String title = request.title() != null
-                ? request.title()
+                ? request.title().trim()
                 : post.getTitle();
 
         String content = request.content() != null

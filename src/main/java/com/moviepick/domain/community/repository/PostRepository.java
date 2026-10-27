@@ -1,4 +1,3 @@
-
 package com.moviepick.domain.community.repository;
 
 import com.moviepick.domain.community.entity.Post;
@@ -27,8 +26,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             FROM Post p
             WHERE p.status = :status
               AND (
-                  LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                  OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                  LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                  OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
               )
             """)
     Page<Post> searchByKeyword(
@@ -66,8 +65,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     LEFT JOIN PostLike pl ON pl.post = p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     GROUP BY p
                     ORDER BY COUNT(pl.id) DESC, p.createdAt DESC
@@ -77,8 +76,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     FROM Post p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     """
     )
@@ -117,8 +116,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     LEFT JOIN PostLike pl ON pl.post = p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     GROUP BY p
                     ORDER BY p.createdAt DESC
@@ -128,8 +127,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                     FROM Post p
                     WHERE p.status = :status
                       AND (
-                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                          LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
+                          OR LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%')) ESCAPE '\\'
                       )
                     """
     )
