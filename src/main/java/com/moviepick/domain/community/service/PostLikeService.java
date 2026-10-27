@@ -35,6 +35,11 @@ public class PostLikeService {
     public PostLikeResponse addLike(Long memberId, Long postId) {
         Post post = findVisiblePost(postId);
 
+        // 본인 게시글 좋아요 금지 (리뷰와 같은 400)
+        if (post.getMember().getId().equals(memberId)) {
+            throw new BusinessException(PostErrorCode.CANNOT_LIKE_OWN_POST);
+        }
+
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
                         new BusinessException(CommonErrorCode.NOT_FOUND));
@@ -105,8 +110,10 @@ public class PostLikeService {
 
         while (cause != null) {
             if (cause instanceof ConstraintViolationException constraintException) {
-                return POST_LIKE_UNIQUE_CONSTRAINT.equals(
-                        constraintException.getConstraintName());
+                // MySQL은 "post_likes.uk_post_like_member", H2는 "PUBLIC.UK_POST_LIKE_MEMBER INDEX ..."로 알려 준다
+                String name = constraintException.getConstraintName();
+                return name != null
+                        && name.toLowerCase().contains(POST_LIKE_UNIQUE_CONSTRAINT);
             }
 
             cause = cause.getCause();
