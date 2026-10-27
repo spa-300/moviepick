@@ -2,6 +2,7 @@ package com.moviepick.domain.movie.dto.response;
 
 import com.moviepick.domain.movie.entity.Movie;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record MovieListResponse(
@@ -9,7 +10,12 @@ public record MovieListResponse(
         String title,
         LocalDate releaseDate,
         Double voteAverage,
-        String posterUrl
+        String posterUrl,
+        // 우리 서비스 자체 평균 평점
+        BigDecimal averageRating,
+
+        // 우리 서비스 리뷰 개수
+        int reviewCount
 ) {
     public static MovieListResponse from(Movie movie) {
         return new MovieListResponse(
@@ -17,7 +23,12 @@ public record MovieListResponse(
                 movie.getTitle(),
                 movie.getReleaseDate(),
                 movie.getVoteAverage(),
-                movie.getPosterUrl()
+                movie.getPosterUrl(),
+                // 리뷰가 0건이면 null
+                movie.getReviewCount() == 0
+                        ? null
+                        : movie.getAvgRating(),
+                movie.getReviewCount()
         );
     }
 }
