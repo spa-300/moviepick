@@ -1,5 +1,8 @@
 package com.moviepick.domain.movie.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record MovieSyncResponse(
         int requestedPages,
         int savedCount,
