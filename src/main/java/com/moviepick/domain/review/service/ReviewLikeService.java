@@ -48,6 +48,10 @@ public class ReviewLikeService {
             reviewLikeRepository.saveAndFlush(ReviewLike.create(review, member));
         } catch (DataIntegrityViolationException e) {
             // 중복이면 409. 앞의 +1은 같은 트랜잭션이라 함께 롤백된다
+            if (isDuplicateLike(e)) {
+                throw new BusinessException(ReviewErrorCode.ALREADY_LIKED);
+            }
+            throw e;
         }
 
         return new LikeResponse(true, reviewRepository.findLikeCountById(reviewId));
