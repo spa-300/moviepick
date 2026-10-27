@@ -1,4 +1,3 @@
-
 package com.moviepick.domain.movie.client;
 
 import com.moviepick.domain.movie.client.dto.TmdbMovieResponse;
@@ -18,19 +17,21 @@ public class TmdbClient {
 
     private final RestClient restClient;
 
+    // TMDB 연결 설정
     public TmdbClient(@Value("${tmdb.access-token}") String token) {
-        // 1. HTTP 연결 타임아웃 설정
+
+        // 1. HTTP 연결 타임아웃 설정 (3초)
         HttpClient httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofSeconds(3))
                 .build();
 
-        // 2. HTTP 응답 읽기 타임아웃 설정
+        // 2. HTTP 응답 타임아웃 설정 (5초)
         JdkClientHttpRequestFactory factory =
                 new JdkClientHttpRequestFactory(httpClient);
 
         factory.setReadTimeout(Duration.ofSeconds(5));
 
-        // 3. TMDB RestClient 생성
+        // 3. TMDB API 호출용 RestClient 생성
         this.restClient = RestClient.builder()
                 .requestFactory(factory)
                 .baseUrl("https://api.themoviedb.org/3")
@@ -45,15 +46,17 @@ public class TmdbClient {
                 .build();
     }
 
-    // 1. 인기 영화 목록 조회
+    // TMDB 인기 영화 목록 조회
     public TmdbPopularResponse getPopularMovies(int page) {
 
+        // 페이지 번호 유효성 검증
         if (page < 1) {
             throw new IllegalArgumentException(
                     "페이지 번호는 1 이상이어야 합니다."
             );
         }
 
+        // TMDB 인기 영화 API 호출
         TmdbPopularResponse response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/movie/popular")
@@ -63,6 +66,7 @@ public class TmdbClient {
                 .retrieve()
                 .body(TmdbPopularResponse.class);
 
+        // 응답 데이터 유효성 검증
         if (response == null || response.results() == null) {
             throw new IllegalStateException(
                     "TMDB 인기 영화 응답이 비어 있습니다."
@@ -72,15 +76,17 @@ public class TmdbClient {
         return response;
     }
 
-    // 2. 영화 상세 정보 조회
+    // TMDB 영화 상세 정보 조회
     public TmdbMovieResponse getMovieDetail(Long tmdbId) {
 
+        // 영화 ID 유효성 검증
         if (tmdbId == null || tmdbId <= 0) {
             throw new IllegalArgumentException(
                     "올바른 TMDB 영화 ID가 필요합니다."
             );
         }
 
+        // TMDB 영화 상세 API 호출
         TmdbMovieResponse response = restClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/movie/{movieId}")
@@ -89,6 +95,7 @@ public class TmdbClient {
                 .retrieve()
                 .body(TmdbMovieResponse.class);
 
+        // 응답 데이터 유효성 검증
         if (response == null) {
             throw new IllegalStateException(
                     "TMDB 영화 상세 응답이 비어 있습니다."
