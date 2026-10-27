@@ -1,4 +1,3 @@
-
 package com.moviepick.domain.community.service;
 
 import com.moviepick.domain.community.dto.request.CommentCreateRequest;
@@ -111,6 +110,11 @@ public class CommentService {
             throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
+        // 게시글이 공개 상태일 때만 댓글 삭제 허용
+        postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
+                .orElseThrow(() ->
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
+
         if (!comment.getMember().getId().equals(memberId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
         }
@@ -132,6 +136,13 @@ public class CommentService {
                 .orElseThrow(() ->
                         new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND));
 
+        Long postId = comment.getPost().getId();
+
+        // 게시글이 공개 상태일 때만 댓글 삭제 허용
+        postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
+                .orElseThrow(() ->
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
+
         if (!comment.getMember().getId().equals(memberId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
         }
@@ -139,8 +150,6 @@ public class CommentService {
         if (comment.getStatus() != CommentStatus.VISIBLE) {
             throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
-
-        Long postId = comment.getPost().getId();
 
         comment.delete();
 
@@ -163,6 +172,11 @@ public class CommentService {
         if (!comment.getPost().getId().equals(postId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
+
+        // 게시글이 공개 상태일 때만 댓글 수정 허용
+        postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
+                .orElseThrow(() ->
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
         if (!comment.getMember().getId().equals(memberId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
