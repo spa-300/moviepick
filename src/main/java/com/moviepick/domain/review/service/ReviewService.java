@@ -3,6 +3,7 @@ package com.moviepick.domain.review.service;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.domain.movie.entity.Movie;
+import com.moviepick.domain.movie.repository.MovieRepository;
 import com.moviepick.domain.movie.service.MovieRatingService;
 import com.moviepick.domain.review.dto.request.ReviewCreateRequest;
 import com.moviepick.domain.review.dto.request.ReviewSort;
@@ -43,6 +44,8 @@ public class ReviewService {
     private final ReviewLikeRepository reviewLikeRepository;
     private final MemberService memberService;
     private final MovieRatingService movieRatingService;
+    private final MovieRepository movieRepository;
+
 
     // ===================== 작성 =====================
 
@@ -50,8 +53,11 @@ public class ReviewService {
     public ReviewCreateResponse createReview(Long memberId, Long movieId, ReviewCreateRequest request) {
         BigDecimal rating = normalizeRating(request.rating());
         Member member = memberService.getMember(memberId);   // [수정] getActiveMember → getMember
-        Movie movie = movieRatingService.getMovie(movieId);
+        Movie movie = movieRatingService.getMovie(movieId);   // 없으면 기존과 같은 예외
         boolean spoiler = request.spoilerOrDefault();
+
+        // 영화 줄 쓰기 잠금을 먼저 잡는다. 리뷰 빈 자리 잠금보다 앞서야 같은 영화 작성이 한 줄로 서서 데드락이 안 난다
+        movieRepository.findByIdForUpdate(movieId);
 
         // 같은 (회원, 영화)의 기존 리뷰 상태에 따라 분기
         Review review = reviewRepository.findByMemberIdAndMovieIdForUpdate(memberId, movieId)

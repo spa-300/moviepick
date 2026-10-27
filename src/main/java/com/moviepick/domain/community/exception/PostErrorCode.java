@@ -29,6 +29,10 @@ public enum PostErrorCode implements ErrorCode {
     POST_LIKE_NOT_FOUND(
             HttpStatus.NOT_FOUND,
             "게시글 좋아요를 찾을 수 없습니다."
+    ),
+    CANNOT_LIKE_OWN_POST(
+            HttpStatus.BAD_REQUEST,
+            "본인의 게시글에는 좋아요할 수 없습니다."
     );
 
     private final HttpStatus status;
