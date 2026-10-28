@@ -41,6 +41,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class ReviewService {
 
+    // 목록에 나오는 리뷰 상태: 숨긴 리뷰도 자리를 유지한다 (내용·평점은 응답에서 null)
+    private static final List<ReviewStatus> LISTED_STATUSES =
+            List.of(ReviewStatus.VISIBLE, ReviewStatus.BLIND);
+
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
     private final MemberService memberService;
@@ -97,8 +101,8 @@ public class ReviewService {
             Long movieId, Long memberId, ReviewSort sort, int page, int size) {
         movieRatingService.getMovie(movieId);   // 없으면 MOVIE_NOT_FOUND
 
-        Page<Review> reviews = reviewRepository.findByMovieIdAndStatus(
-                movieId, ReviewStatus.VISIBLE, PageRequest.of(page, size, sort.getSort()));
+        Page<Review> reviews = reviewRepository.findByMovieIdAndStatusIn(
+                movieId, LISTED_STATUSES, PageRequest.of(page, size, sort.getSort()));
         Set<Long> likedIds = findLikedReviewIds(memberId, reviews.getContent());
 
         return PageResponse.from(reviews.map(r -> ReviewResponse.of(r, likedIds.contains(r.getId()))));
@@ -106,14 +110,14 @@ public class ReviewService {
 
     public PageResponse<ReviewWithMovieResponse> getReviews(ReviewSort sort, int page, int size) {
         // 비활성 영화의 리뷰는 전체 목록에서 뺀다 (내 리뷰에는 남김)
-        Page<Review> reviews = reviewRepository.findByStatusAndMovieActiveTrue(
-                ReviewStatus.VISIBLE, PageRequest.of(page, size, sort.getSort()));
+        Page<Review> reviews = reviewRepository.findByStatusInAndMovieActiveTrue(
+                LISTED_STATUSES, PageRequest.of(page, size, sort.getSort()));
         return PageResponse.from(reviews.map(ReviewWithMovieResponse::withAuthor));
     }
 
     public PageResponse<ReviewWithMovieResponse> getMyReviews(Long memberId, int page, int size) {
-        Page<Review> reviews = reviewRepository.findByMemberIdAndStatus(
-                memberId, ReviewStatus.VISIBLE,
+        Page<Review> reviews = reviewRepository.findByMemberIdAndStatusIn(
+                memberId, LISTED_STATUSES,
                 PageRequest.of(page, size, ReviewSort.LATEST.getSort()));
         return PageResponse.from(reviews.map(ReviewWithMovieResponse::forMine));
     }
