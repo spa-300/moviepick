@@ -1,0 +1,90 @@
+package com.moviepick.domain.admin.controller;
+
+import com.moviepick.domain.admin.service.AdminReviewService;
+import com.moviepick.domain.member.service.MemberService;
+import com.moviepick.domain.review.service.ReviewService;
+import com.moviepick.global.auth.CustomAccessDeniedHandler;
+import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
+import com.moviepick.global.auth.CustomOAuth2UserService;
+import com.moviepick.global.auth.CustomOidcUserService;
+import com.moviepick.global.auth.JwtProvider;
+import com.moviepick.global.auth.OAuth2LoginSuccessHandler;
+import com.moviepick.global.config.SecurityConfig;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+// ADMIN-03: 관리자 리뷰 숨김은 PATCH /api/admin/reviews/{reviewId}/blind, 기존 DELETE 주소는 없음
+@WebMvcTest(
+        controllers = AdminReviewController.class,
+        properties = {
+                "spring.security.oauth2.client.registration.google.client-id=test-google",
+                "spring.security.oauth2.client.registration.google.client-secret=test-secret",
+                "spring.security.oauth2.client.registration.kakao.client-id=test-kakao",
+                "spring.security.oauth2.client.registration.kakao.client-secret=test-secret"
+        }
+)
+@Import({
+        SecurityConfig.class,
+        CustomAuthenticationEntryPoint.class,
+        CustomAccessDeniedHandler.class,
+        AdminReviewService.class
+})
+@ActiveProfiles("test")
+@WithMockUser(roles = "ADMIN")
+class AdminReviewBlindTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
+    private ReviewService reviewService;
+
+    @MockitoBean
+    private MemberService memberService;
+    @MockitoBean
+    private JwtProvider jwtProvider;
+    @MockitoBean
+    private CustomOAuth2UserService customOAuth2UserService;
+    @MockitoBean
+    private CustomOidcUserService customOidcUserService;
+    @MockitoBean
+    private OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+
+    @Test
+    @DisplayName("PATCH /blind → 200, 반복 호출도 200")
+    void blind_patch_ok() throws Exception {
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(patch("/api/admin/reviews/5/blind").with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.success").value(true));
+        }
+
+        verify(reviewService, times(2)).blind(5L);
+    }
+
+    @Test
+    @DisplayName("기존 DELETE /api/admin/reviews/{id} 주소는 없음")
+    void oldDelete_removed() throws Exception {
+        mockMvc.perform(delete("/api/admin/reviews/5").with(csrf()))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("PATH_NOT_FOUND"));
+
+        verifyNoInteractions(reviewService);
+    }
+}

@@ -163,7 +163,7 @@ public class ReviewService {
     }
 
     /**
-     * 관리자 파트(DELETE /api/admin/reviews/{id})에서 호출. VISIBLE → BLIND + 평점 집계 차감을 한 트랜잭션으로 처리.
+     * 관리자 파트(PATCH /api/admin/reviews/{reviewId}/blind)에서 호출. VISIBLE → BLIND + 평점 집계 차감을 한 트랜잭션으로 처리.
      * 상태 변경은 조건부 UPDATE라서, 이미 BLIND/DELETED면 반영 행이 0 → 차감하지 않는다 (중복 블라인드·작성자 삭제와 겹쳐도 안전).
      * 존재하지 않는 리뷰만 REVIEW_NOT_FOUND, 이미 숨겨진 리뷰는 아무것도 하지 않는다 (멱등).
      */
