@@ -1,5 +1,6 @@
 package com.moviepick.domain.member.dto.request;
 
+import com.moviepick.global.validation.MaxUtf8Bytes;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -13,6 +14,7 @@ public record SignupRequest(
 
         @NotBlank(message = "비밀번호를 입력해주세요.")
         @Size(min = 8, max = 72, message = "비밀번호는 8자 이상 72자 이하여야 합니다.")
+        @MaxUtf8Bytes(value = 72, message = "비밀번호는 UTF-8 기준 72바이트 이하여야 합니다. (한글은 1자에 3바이트)")
         String password,
 
         @NotBlank(message = "닉네임을 입력해주세요.")
