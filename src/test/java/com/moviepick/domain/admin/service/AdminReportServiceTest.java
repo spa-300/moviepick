@@ -119,6 +119,41 @@ class AdminReportServiceTest {
     }
 
     @Test
+    @DisplayName("작성자가 삭제한 글의 신고를 승인하면 글은 DELETED로 남고, 신고 승인과 제재는 진행된다")
+    void acceptReportOfDeletedPost() {
+        Member writer = saveMember("writer");
+        Post post = postRepository.save(Post.create(writer, "title", "content"));
+        Long reportId = saveReport(saveMember("reporter1"), post).getId();
+        saveReport(saveMember("reporter2"), post);
+        post.delete();
+        postRepository.save(post);
+
+        AdminReportResponse response = adminReportService.processReport(reportId, ACCEPT);
+
+        assertThat(response.status()).isEqualTo(ReportStatus.ACCEPTED);
+        assertThat(postRepository.findById(post.getId()).orElseThrow().getStatus())
+                .isEqualTo(PostStatus.DELETED);
+        assertThat(communityReportRepository.findAll())
+                .allMatch(report -> report.getStatus() == ReportStatus.ACCEPTED);
+        assertThat(adminSanctionRepository.count()).isEqualTo(1);
+        assertThat(memberRepository.findById(writer.getId()).orElseThrow().getStatus())
+                .isEqualTo(MemberStatus.SUSPENDED);
+    }
+
+    @Test
+    @DisplayName("삭제되지 않은 글의 신고를 승인하면 글은 BLINDED가 된다")
+    void acceptReportOfVisiblePost() {
+        Member writer = saveMember("writer");
+        Post post = postRepository.save(Post.create(writer, "title", "content"));
+        Long reportId = saveReport(saveMember("reporter"), post).getId();
+
+        adminReportService.processReport(reportId, ACCEPT);
+
+        assertThat(postRepository.findById(post.getId()).orElseThrow().getStatus())
+                .isEqualTo(PostStatus.BLINDED);
+    }
+
+    @Test
     @DisplayName("신고 목록에 대상 글 제목, 100자 미리보기, 작성자 닉네임이 담긴다")
     void getReportsWithPostInfo() {
         Member writer = saveMember("writer");
