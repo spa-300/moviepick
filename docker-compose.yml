@@ -1,0 +1,51 @@
+# moviepick 개발용 MySQL·Redis
+# 처음 한 번: .env.example을 .env로 복사 → docker compose up -d
+# DB를 처음부터 다시 만들기(schema.sql이 바뀌었을 때): docker compose down -v → docker compose up -d
+name: moviepick
+
+services:
+  mysql:
+    image: mysql:8.0.46
+    container_name: moviepick-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?.env 파일에 MYSQL_ROOT_PASSWORD를 넣어 주세요}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-moviepick}
+      MYSQL_USER: ${MYSQL_USER:-moviepick}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?.env 파일에 MYSQL_PASSWORD를 넣어 주세요}
+      TZ: Asia/Seoul
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --default-time-zone=+09:00
+    ports:
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # 폴더 단위로 연결 (schema.sql, data.sql, seed/)
+      - ./db:/db:ro
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+
+  redis:
+    image: redis:7.2.17-alpine
+    container_name: moviepick-redis
+    environment:
+      TZ: Asia/Seoul
+    ports:
+      - "127.0.0.1:${REDIS_PORT:-6380}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  mysql-data:
+  redis-data:

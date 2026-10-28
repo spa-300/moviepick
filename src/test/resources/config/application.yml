@@ -1,0 +1,14 @@
+# 테스트 전용 덮어쓰기 (src/main/resources/application.yml보다 우선)
+# - local 프로필을 끄고 test 프로필로 바꿔, 개인 application-local.yml이 있는 PC에서도 테스트는 H2로 돈다
+# - datasource.url을 비우면 Spring이 테스트마다 새 메모리 H2를 만든다 (이전과 같은 동작)
+# 다음 작업(Testcontainers)에서 MySQL 컨테이너 설정으로 바꾼다.
+spring:
+  profiles:
+    active: test
+  datasource:
+    url: ""
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
