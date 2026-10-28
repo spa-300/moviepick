@@ -11,6 +11,7 @@ import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.admin.entity.AdminSanction;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +26,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("concurrency")
+@EnabledIfEnvironmentVariable(named = "TEST_DB_PASSWORD", matches = ".+")
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class AdminReportConcurrencyTest {
-
     @Autowired
     private AdminReportService adminReportService;
 

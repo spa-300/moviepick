@@ -8,5 +8,5 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
-      tmdb:
-        access-token: test-dummy-token
+tmdb:
+  access-token: test-dummy-token
