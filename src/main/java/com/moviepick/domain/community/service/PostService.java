@@ -135,8 +135,24 @@ public class PostService {
     }
 
     // 게시글 상세 조회
+    // 관리자는 숨긴 글(BLINDED)도 볼 수 있다. 삭제된 글은 관리자도 404
     @Transactional
-    public PostDetailResponse getPost(Long memberId, Long postId) {
+    public PostDetailResponse getPost(Long memberId, Long postId, boolean admin) {
+        if (admin) {
+            Post blinded = postRepository.findById(postId)
+                    .filter(found -> found.getStatus() == PostStatus.BLINDED)
+                    .orElse(null);
+
+            // 숨긴 글은 조회수를 올리지 않는다
+            if (blinded != null) {
+                long likeCount = postLikeService.countLikes(postId);
+                boolean likedByMe = memberId != null
+                        && postLikeService.isLikedByMember(postId, memberId);
+
+                return PostDetailResponse.from(blinded, likeCount, likedByMe);
+            }
+        }
+
         Post post = postRepository
                 .findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->

@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/community/posts")
@@ -78,10 +79,16 @@ public class PostController {
     @GetMapping("/{postId}")
     public ResponseEntity<ApiResponse<PostDetailResponse>> getPost(
             @LoginMember(required = false) Long memberId,
-            @PathVariable Long postId
+            @PathVariable Long postId,
+            Authentication authentication
     ) {
+        // 관리자는 숨긴 글도 상세 조회 가능
+        boolean admin = authentication != null
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+
         PostDetailResponse response =
-                postService.getPost(memberId, postId);
+                postService.getPost(memberId, postId, admin);
 
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
