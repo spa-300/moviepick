@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface AdminSanctionRepository
         extends JpaRepository<AdminSanction, Long> {
 
@@ -28,4 +30,8 @@ public interface AdminSanctionRepository
             @Param("targetType") ReportTargetType targetType,
             @Param("targetId") Long targetId
     );
+
+    // 특정 회원의 제재 이력 전체 조회
+    List<AdminSanction> findAllByMemberId(Long memberId);
+
 }
