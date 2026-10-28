@@ -76,7 +76,7 @@ public class ReviewLikeService {
         // 지운 행이 없으면 좋아요 기록이 없는 것
         int deleted = reviewLikeRepository.deleteByReviewIdAndMemberId(reviewId, memberId);
         if (deleted == 0) {
-            throw new BusinessException(ReviewErrorCode.LIKE_NOT_FOUND);
+            throw new BusinessException(ReviewErrorCode.REVIEW_LIKE_NOT_FOUND);
         }
 
         reviewRepository.decreaseLikeCount(reviewId);

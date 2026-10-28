@@ -17,7 +17,7 @@ public enum ReviewErrorCode implements ErrorCode {
     CANNOT_LIKE_OWN_REVIEW(HttpStatus.BAD_REQUEST, "본인의 리뷰에는 좋아요할 수 없습니다."),
     ALREADY_LIKED(HttpStatus.CONFLICT, "이미 좋아요한 리뷰입니다."),
     INVALID_SORT(HttpStatus.BAD_REQUEST, "정렬 기준이 올바르지 않습니다."),
-    LIKE_NOT_FOUND(HttpStatus.CONFLICT, "좋아요한 기록이 없습니다.");
+    REVIEW_LIKE_NOT_FOUND(HttpStatus.NOT_FOUND, "좋아요한 기록이 없습니다.");
 
     private final HttpStatus status;
     private final String message;
