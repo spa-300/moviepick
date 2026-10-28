@@ -21,9 +21,10 @@ public class AdminMemberService {
     // 관리자: 회원 목록 및 상태별 조회
     public Page<MemberResponse> getMembers(
             MemberStatus status,
-            int page
+            int page,
+            int size
     ) {
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Member> members;
 

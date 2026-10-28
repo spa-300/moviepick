@@ -160,7 +160,7 @@ class AdminReportServiceTest {
         Post post = postRepository.save(Post.create(writer, "title", "a".repeat(150)));
         saveReport(saveMember("reporter"), post);
 
-        AdminReportResponse response = adminReportService.getReports(0).getContent().get(0);
+        AdminReportResponse response = adminReportService.getReports(0, 20).getContent().get(0);
 
         assertThat(response.postTitle()).isEqualTo("title");
         assertThat(response.postContentPreview()).hasSize(100);

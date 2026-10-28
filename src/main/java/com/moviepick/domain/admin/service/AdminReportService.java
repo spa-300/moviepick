@@ -39,9 +39,9 @@ public class AdminReportService {
     private final EntityManager entityManager;
 
     // 관리자: 신고 목록 조회
-    public Page<AdminReportResponse> getReports(int page) {
+    public Page<AdminReportResponse> getReports(int page, int size) {
         return communityReportRepository
-                .findAll(PageRequest.of(page, 10))
+                .findAll(PageRequest.of(page, size))
                 .map(report -> {
                     if (report.getTargetType() == ReportTargetType.POST) {
                         return postRepository.findById(report.getTargetId())
