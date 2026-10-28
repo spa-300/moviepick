@@ -39,3 +39,8 @@ out/
 ### 시크릿 ###
 application-local.yml
 .env
+
+### Docker 개발 환경 ###
+# 영화 데이터 등 저장소에 올리지 않는 초기 데이터 (db/seed/에 두면 컨테이너 첫 생성 때 실행)
+db/seed/*
+!db/seed/.gitkeep
