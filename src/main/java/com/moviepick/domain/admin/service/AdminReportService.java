@@ -154,7 +154,10 @@ public class AdminReportService {
                     .orElseThrow(() ->
                             new BusinessException(CommonErrorCode.NOT_FOUND));
 
-            post.blind();
+            // 작성자가 이미 삭제한 게시글은 DELETED 상태 유지
+            if (post.getStatus() != PostStatus.DELETED) {
+                post.blind();
+            }
         }
 
         // TODO: 댓글 신고 승인 시 댓글 숨김 처리
