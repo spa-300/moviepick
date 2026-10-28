@@ -17,6 +17,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
@@ -84,9 +85,14 @@ public class SecurityConfig {
                         corsConfigurationSource()
                 ))
 
+                // JWT 인증을 매 요청 새 로그인으로 보고 CSRF 토큰과 세션 ID를 바꾸지 않도록
+                // 세션 인증 전략은 아무것도 하지 않음
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(
                                 SessionCreationPolicy.STATELESS
+                        )
+                        .sessionAuthenticationStrategy(
+                                new NullAuthenticatedSessionStrategy()
                         )
                 )
 
@@ -101,6 +107,10 @@ public class SecurityConfig {
                         )
                         .ignoringRequestMatchers(
                                 "/api/webhooks/portone"
+                        )
+                        // JWT 인증 요청마다 CSRF 토큰을 교체하지 않음
+                        .sessionAuthenticationStrategy(
+                                new NullAuthenticatedSessionStrategy()
                         )
                 )
 
