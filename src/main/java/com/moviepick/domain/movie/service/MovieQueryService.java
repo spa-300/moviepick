@@ -55,7 +55,7 @@ public class MovieQueryService {
                 .findByIdAndActiveTrue(movieId)
                 .orElseThrow(() ->
                         new BusinessException(
-                                CommonErrorCode.NOT_FOUND
+                                CommonErrorCode.MOVIE_NOT_FOUND
                         )
                 );
 

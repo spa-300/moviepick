@@ -5,6 +5,7 @@ import com.moviepick.domain.review.entity.ReviewStatus;
 import jakarta.persistence.LockModeType;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,13 +40,14 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // ===== 조회용 (N+1 방지: EntityGraph) =====
 
     @EntityGraph(attributePaths = "member")
-    Page<Review> findByMovieIdAndStatus(Long movieId, ReviewStatus status, Pageable pageable);
+    Page<Review> findByMovieIdAndStatusIn(Long movieId, Collection<ReviewStatus> statuses, Pageable pageable);
 
+    // 전체 리뷰 목록용: 활성 영화의 리뷰만
     @EntityGraph(attributePaths = {"member", "movie"})
-    Page<Review> findByStatus(ReviewStatus status, Pageable pageable);
+    Page<Review> findByStatusInAndMovieActiveTrue(Collection<ReviewStatus> statuses, Pageable pageable);
 
     @EntityGraph(attributePaths = "movie")
-    Page<Review> findByMemberIdAndStatus(Long memberId, ReviewStatus status, Pageable pageable);
+    Page<Review> findByMemberIdAndStatusIn(Long memberId, Collection<ReviewStatus> statuses, Pageable pageable);
 
     boolean existsByIdAndStatus(Long id, ReviewStatus status);
 

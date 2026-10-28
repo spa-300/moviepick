@@ -161,7 +161,6 @@ public class CommentService {
     @Transactional
     public CommentCreateResponse updateComment(
             Long memberId,
-            Long postId,
             Long commentId,
             CommentUpdateRequest request
     ) {
@@ -169,9 +168,8 @@ public class CommentService {
                 .orElseThrow(() ->
                         new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getPost().getId().equals(postId)) {
-            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
-        }
+        // 게시글 번호는 댓글에서 꺼낸다
+        Long postId = comment.getPost().getId();
 
         // 게시글이 공개 상태일 때만 댓글 수정 허용
         postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)

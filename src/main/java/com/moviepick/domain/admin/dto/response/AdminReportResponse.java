@@ -6,7 +6,7 @@ import com.moviepick.domain.community.entity.ReportStatus;
 import com.moviepick.domain.community.entity.ReportTargetType;
 
 public record AdminReportResponse(
-        Long id,
+        Long reportId,
         Long reporterId,
         ReportTargetType targetType,
         Long targetId,

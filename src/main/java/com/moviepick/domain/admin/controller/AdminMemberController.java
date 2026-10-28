@@ -25,10 +25,12 @@ public class AdminMemberController {
             @RequestParam(required = false) MemberStatus status,
             @RequestParam(defaultValue = "0")
             @Min(value = 0, message = "페이지 번호는 0 이상이어야 합니다.")
-            int page
+            int page,
+            // 범위(1~100)는 공통 페이지 규칙(PageRequestConfig)이 검사
+            @RequestParam(defaultValue = "20") int size
     ) {
         Page<MemberResponse> members =
-                adminMemberService.getMembers(status, page);
+                adminMemberService.getMembers(status, page, size);
 
         return ResponseEntity.ok(members);
     }

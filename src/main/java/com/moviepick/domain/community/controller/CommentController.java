@@ -17,9 +17,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,17 +60,16 @@ public class CommentController {
         );
     }
 
-    // 댓글 수정
-    @PutMapping("/posts/{postId}/comments/{commentId}")
+    // 댓글 수정 (삭제·좋아요·신고와 같은 /comments/{commentId} 주소)
+    @PatchMapping("/comments/{commentId}")
     public ResponseEntity<ApiResponse<CommentCreateResponse>> updateComment(
             @LoginMember Long memberId,
-            @PathVariable Long postId,
             @PathVariable Long commentId,
             @Valid @RequestBody CommentUpdateRequest request
     ) {
         CommentCreateResponse response =
                 commentService.updateComment(
-                        memberId, postId, commentId, request
+                        memberId, commentId, request
                 );
 
         return ResponseEntity.ok(ApiResponse.ok(response));

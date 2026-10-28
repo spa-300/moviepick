@@ -18,9 +18,11 @@ public class AdminReportController {
     // 관리자: 신고 목록 조회
     @GetMapping
     public ResponseEntity<Page<AdminReportResponse>> getReports(
-            @RequestParam(defaultValue = "0") int page
+            @RequestParam(defaultValue = "0") int page,
+            // 범위(1~100)는 공통 페이지 규칙(PageRequestConfig)이 검사
+            @RequestParam(defaultValue = "20") int size
     ) {
-        return ResponseEntity.ok(adminReportService.getReports(page));
+        return ResponseEntity.ok(adminReportService.getReports(page, size));
     }
 
     // 관리자: 신고 승인 또는 반려

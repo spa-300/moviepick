@@ -2,10 +2,14 @@ package com.moviepick.domain.review.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.moviepick.domain.review.entity.Review;
+import com.moviepick.domain.review.entity.ReviewStatus;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** 전체 리뷰 목록(author 포함), 내 리뷰(author 제외)용 */
+/**
+ * 전체 리뷰 목록(author 포함), 내 리뷰(author 제외, movieActive 포함)용.
+ * 숨긴 리뷰는 blinded=true, rating·content는 null
+ */
 public record ReviewWithMovieResponse(
         Long reviewId,
         ReviewMovieResponse movie,
@@ -14,25 +18,32 @@ public record ReviewWithMovieResponse(
         String content,
         boolean spoiler,
         int likeCount,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        // 내 리뷰 전용: 영화가 비활성이면 false (수정 버튼·영화 링크를 끌 때 사용)
+        @JsonInclude(JsonInclude.Include.NON_NULL) Boolean movieActive,
+        boolean blinded
 ) {
     public static ReviewWithMovieResponse withAuthor(Review review) {
-        return of(review, AuthorResponse.from(review.getMember()));
+        return of(review, AuthorResponse.from(review.getMember()), null);
     }
 
     public static ReviewWithMovieResponse forMine(Review review) {
-        return of(review, null);
+        return of(review, null, review.getMovie().isActive());
     }
 
-    private static ReviewWithMovieResponse of(Review review, AuthorResponse author) {
+    private static ReviewWithMovieResponse of(Review review, AuthorResponse author, Boolean movieActive) {
+        boolean blinded = review.getStatus() == ReviewStatus.BLIND;
+
         return new ReviewWithMovieResponse(
                 review.getId(),
                 ReviewMovieResponse.from(review.getMovie()),
                 author,
-                review.getRating(),
-                review.getContent(),
+                blinded ? null : review.getRating(),
+                blinded ? null : review.getContent(),
                 review.isSpoiler(),
                 review.getLikeCount(),
-                review.getCreatedAt());
+                review.getCreatedAt(),
+                movieActive,
+                blinded);
     }
 }

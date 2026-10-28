@@ -3,7 +3,9 @@ package com.moviepick.domain.admin.service;
 import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
+import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,9 +23,10 @@ public class AdminMemberService {
     // 관리자: 회원 목록 및 상태별 조회
     public Page<MemberResponse> getMembers(
             MemberStatus status,
-            int page
+            int page,
+            int size
     ) {
-        Pageable pageable = PageRequest.of(page, 10);
+        Pageable pageable = PageRequest.of(page, size);
 
         Page<Member> members;
 
@@ -45,12 +48,12 @@ public class AdminMemberService {
         // 회원 ID로 조회
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("회원을 찾을 수 없습니다.")
+                        new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND)
                 );
 
         // 제재 상태인지 확인
         if (member.getStatus() != MemberStatus.SUSPENDED) {
-            throw new IllegalStateException("제재된 회원만 해제할 수 있습니다.");
+            throw new BusinessException(MemberErrorCode.MEMBER_NOT_SUSPENDED);
         }
 
         // SUSPENDED → ACTIVE

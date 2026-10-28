@@ -36,10 +36,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 1. 카카오인지 구글인지 확인
         if (!(authentication instanceof OAuth2AuthenticationToken oauthToken)) {
-            response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "OAuth2 인증 정보가 없습니다."
-            );
+            redirectToFail(response, OAuth2LoginFailureHandler.REASON_OAUTH2_FAILED);
             return;
         }
 
@@ -59,10 +56,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Object kakaoId = oauth2User.getAttributes().get("id");
 
             if (kakaoId == null) {
-                response.sendError(
-                        HttpServletResponse.SC_UNAUTHORIZED,
-                        "카카오 사용자 ID가 없습니다."
-                );
+                redirectToFail(response, OAuth2LoginFailureHandler.REASON_OAUTH2_FAILED);
                 return;
             }
 
@@ -75,10 +69,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             Object googleId = oauth2User.getAttributes().get("sub");
 
             if (googleId == null || String.valueOf(googleId).isBlank()) {
-                response.sendError(
-                        HttpServletResponse.SC_UNAUTHORIZED,
-                        "구글 사용자 ID가 없습니다."
-                );
+                redirectToFail(response, OAuth2LoginFailureHandler.REASON_OAUTH2_FAILED);
                 return;
             }
 
@@ -86,10 +77,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         } else {
 
-            response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "지원하지 않는 소셜 로그인입니다."
-            );
+            redirectToFail(response, OAuth2LoginFailureHandler.REASON_OAUTH2_FAILED);
             return;
         }
 
@@ -98,11 +86,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
                 .findByProviderAndProviderId(provider, providerId)
                 .orElse(null);
 
-        if (member == null || member.getStatus() != MemberStatus.ACTIVE) {
-            response.sendError(
-                    HttpServletResponse.SC_UNAUTHORIZED,
-                    "로그인할 수 없는 회원입니다."
-            );
+        if (member == null) {
+            redirectToFail(response, OAuth2LoginFailureHandler.REASON_OAUTH2_FAILED);
+            return;
+        }
+
+        // 정지·탈퇴 회원은 구분할 수 있는 reason으로 실패 화면 이동
+        if (member.getStatus() != MemberStatus.ACTIVE) {
+            redirectToFail(response, OAuth2LoginFailureHandler.reasonOf(member.getStatus()));
             return;
         }
 
@@ -149,9 +140,16 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
 
         // 9. React 로그인 완료 페이지로 이동
-        response.sendRedirect(
-                "http://localhost:5173/oauth2/success"
-        );
+        response.sendRedirect(FrontendUrls.OAUTH2_SUCCESS);
 
+    }
+
+    // 프론트 소셜 로그인 실패 화면으로 이동
+    private void redirectToFail(
+            HttpServletResponse response,
+            String reason
+    ) throws IOException {
+
+        response.sendRedirect(FrontendUrls.oauth2Fail(reason));
     }
 }

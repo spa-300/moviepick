@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record MovieListResponse(
-        Long id,
+        Long movieId,
         String title,
         LocalDate releaseDate,
         Double voteAverage,

@@ -39,9 +39,9 @@ public class AdminReportService {
     private final EntityManager entityManager;
 
     // 관리자: 신고 목록 조회
-    public Page<AdminReportResponse> getReports(int page) {
+    public Page<AdminReportResponse> getReports(int page, int size) {
         return communityReportRepository
-                .findAll(PageRequest.of(page, 10))
+                .findAll(PageRequest.of(page, size))
                 .map(report -> {
                     if (report.getTargetType() == ReportTargetType.POST) {
                         return postRepository.findById(report.getTargetId())
@@ -117,7 +117,7 @@ public class AdminReportService {
 
         // 6. 잠금 획득 후 신고 상태 재검증
         if (report.getStatus() != ReportStatus.PENDING) {
-            throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+            throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         // 7. 신고 반려
@@ -129,7 +129,7 @@ public class AdminReportService {
             );
 
             if (updated == 0) {
-                throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+                throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
             }
 
             entityManager.refresh(report);
@@ -170,7 +170,7 @@ public class AdminReportService {
         );
 
         if (updated == 0) {
-            throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+            throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         entityManager.refresh(report);

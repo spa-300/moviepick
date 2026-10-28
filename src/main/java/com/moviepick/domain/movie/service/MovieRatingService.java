@@ -17,10 +17,10 @@ public class MovieRatingService {
 
     private final MovieRepository movieRepository;
 
-    // 리뷰 작성 대상 영화 조회
+    // 리뷰 작성·목록 대상 영화 조회 (없거나 비활성이면 MOVIE_NOT_FOUND)
     @Transactional(readOnly = true)
     public Movie getMovie(Long movieId) {
-        return movieRepository.findById(movieId)
+        return movieRepository.findByIdAndActiveTrue(movieId)
                 .orElseThrow(() ->
                         new BusinessException(
                                 CommonErrorCode.MOVIE_NOT_FOUND

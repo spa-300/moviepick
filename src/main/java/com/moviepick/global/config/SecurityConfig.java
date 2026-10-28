@@ -6,13 +6,13 @@ import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
 import com.moviepick.global.auth.CustomOidcUserService;
 import com.moviepick.global.auth.JwtAuthenticationFilter;
+import com.moviepick.global.auth.OAuth2LoginFailureHandler;
 import com.moviepick.global.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -68,6 +68,8 @@ public class SecurityConfig {
                                 .oidcUserService(customOidcUserService)
                         )
                         .successHandler(oauth2LoginSuccessHandler)
+                        // 실패 시 백엔드 /login?error 대신 프론트 실패 화면으로 이동
+                        .failureHandler(new OAuth2LoginFailureHandler())
                 );
 
         return http.build();
@@ -121,59 +123,8 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // CSRF 토큰 발급
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/auth/csrf"
-                        ).permitAll()
-
-                        // 회원가입 및 로그인
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/auth/members",
-                                "/api/auth/login"
-                        ).permitAll()
-
-                        // 로그아웃 및 토큰 재발급
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/auth/logout",
-                                "/api/auth/refresh"
-                        ).permitAll()
-
-                        // 영화 목록 및 상세 조회
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/movies",
-                                "/api/movies/*"
-                        ).permitAll()
-
-                        // 영화별 리뷰 목록 및 전체 리뷰 목록 조회
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/movies/*/reviews",
-                                "/api/movies/reviews"
-                        ).permitAll()
-
-                        // 커뮤니티 게시글 및 댓글 조회
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/community/posts",
-                                "/api/community/posts/*",
-                                "/api/community/posts/*/comments"
-                        ).permitAll()
-
-                        // 게시글 좋아요 수 조회
-                        .requestMatchers(
-                                HttpMethod.GET,
-                                "/api/community/posts/*/likes"
-                        ).permitAll()
-
-                        // PortOne 결제 웹훅
-                        .requestMatchers(
-                                HttpMethod.POST,
-                                "/api/webhooks/portone"
-                        ).permitAll()
+                        // 공개 주소 (목록은 PublicEndpoints 한 곳에서 관리)
+                        .requestMatchers(PublicEndpoints.MATCHER).permitAll()
 
                         // 관리자 API
                         .requestMatchers("/api/admin/**")

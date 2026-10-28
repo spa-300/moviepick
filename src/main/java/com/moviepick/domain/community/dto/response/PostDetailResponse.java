@@ -2,6 +2,7 @@
 package com.moviepick.domain.community.dto.response;
 
 import com.moviepick.domain.community.entity.Post;
+import com.moviepick.domain.community.entity.PostStatus;
 import com.moviepick.domain.member.entity.MemberStatus;
 
 import java.time.LocalDateTime;
@@ -16,7 +17,9 @@ public record PostDetailResponse(
         int commentCount,
         int viewCount,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        // 게시글 상태 (일반 조회는 늘 VISIBLE, 관리자는 BLINDED도 볼 수 있음)
+        PostStatus status
 ) {
     public record Author(
             Long memberId,
@@ -44,7 +47,8 @@ public record PostDetailResponse(
                 post.getCommentCount(),
                 post.getViewCount(),
                 post.getCreatedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                post.getStatus()
         );
     }
 }

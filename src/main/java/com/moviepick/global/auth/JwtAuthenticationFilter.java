@@ -1,20 +1,26 @@
-
 package com.moviepick.global.auth;
 
 import com.moviepick.domain.member.entity.Member;
+import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.service.MemberService;
+import com.moviepick.global.config.PublicEndpoints;
+import com.moviepick.global.exception.BusinessException;
+import com.moviepick.global.exception.ErrorCode;
+import com.moviepick.global.response.ApiResponse;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final ObjectMapper objectMapper;
 
     // 토큰 재발급 요청은 Access Token 검증에서 제외
     @Override
@@ -50,9 +57,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 3. Bearer 형식이 아니면 401 반환
+        // 공개 주소는 잘못된 토큰을 무시하고 비로그인으로 진행한다
+        boolean publicEndpoint = PublicEndpoints.matches(request);
+
+        // 3. Bearer 형식이 아니면 인증 실패
         if (!authorization.startsWith("Bearer ")) {
-            sendUnauthorized(request, response);
+            reject(request, response, filterChain, publicEndpoint, null);
             return;
         }
 
@@ -76,15 +86,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long memberId = Long.valueOf(claims.getSubject());
 
             // DB에서 회원 조회 및 ACTIVE 상태 확인
+            // 회원 없음·정지·탈퇴(BusinessException)만 인증 실패로 보고,
+            // DB 오류 같은 인프라 오류는 그대로 던져 공통 서버 오류(500)로 응답한다
             Member member;
 
             try {
                 member = memberService.getActiveMember(memberId);
-            } catch (RuntimeException e) {
-                throw new IllegalArgumentException(
-                        "존재하지 않거나 이용할 수 없는 회원입니다.",
-                        e
-                );
+            } catch (BusinessException e) {
+                // 정지·탈퇴 회원은 보호 주소에서 로그인·refresh와 같은 403으로 응답
+                reject(request, response, filterChain, publicEndpoint, forbiddenCode(e));
+                return;
             }
 
             // DB에 저장된 현재 권한 사용
@@ -114,16 +125,67 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         } catch (IllegalArgumentException e) {
 
-            // 10. JWT 검증 실패 시 인증 정보 제거
-            SecurityContextHolder.clearContext();
-
-            // 11. 401 응답 반환
-            sendUnauthorized(request, response);
+            // 10. JWT 검증 실패 (형식·서명·만료·토큰 종류)
+            reject(request, response, filterChain, publicEndpoint, null);
             return;
         }
 
-        // 12. 정상 토큰이면 다음 필터 실행
+        // 11. 정상 토큰이면 다음 필터 실행
         filterChain.doFilter(request, response);
+    }
+
+    // 인증 실패 처리
+    // 공개 주소: 인증 정보 없이 다음 필터로 진행 (비로그인과 같은 응답)
+    // 보호 주소: forbiddenCode가 있으면 403, 없으면 401
+    private void reject(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain,
+            boolean publicEndpoint,
+            ErrorCode forbiddenCode
+    ) throws IOException, ServletException {
+
+        SecurityContextHolder.clearContext();
+
+        if (publicEndpoint) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (forbiddenCode != null) {
+            sendError(response, forbiddenCode);
+            return;
+        }
+
+        sendUnauthorized(request, response);
+    }
+
+    // 정지·탈퇴 회원이면 그 오류 이름, 그 밖(회원 없음 등)은 null → 401
+    private ErrorCode forbiddenCode(BusinessException e) {
+        ErrorCode errorCode = e.getErrorCode();
+
+        if (errorCode == MemberErrorCode.MEMBER_SUSPENDED
+                || errorCode == MemberErrorCode.MEMBER_WITHDRAWN) {
+            return errorCode;
+        }
+
+        return null;
+    }
+
+    // 공통 응답 모양으로 오류 응답
+    private void sendError(
+            HttpServletResponse response,
+            ErrorCode errorCode
+    ) throws IOException {
+
+        response.setStatus(errorCode.getStatus().value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+
+        objectMapper.writeValue(
+                response.getWriter(),
+                ApiResponse.error(errorCode)
+        );
     }
 
     // 인증 실패 시 401 응답 처리

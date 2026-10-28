@@ -18,6 +18,7 @@ import com.moviepick.domain.review.exception.ReviewErrorCode;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
+import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.global.response.PageResponse;
 
 import java.math.BigDecimal;
@@ -39,6 +40,10 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class ReviewService {
+
+    // 목록에 나오는 리뷰 상태: 숨긴 리뷰도 자리를 유지한다 (내용·평점은 응답에서 null)
+    private static final List<ReviewStatus> LISTED_STATUSES =
+            List.of(ReviewStatus.VISIBLE, ReviewStatus.BLIND);
 
     private final ReviewRepository reviewRepository;
     private final ReviewLikeRepository reviewLikeRepository;
@@ -96,22 +101,23 @@ public class ReviewService {
             Long movieId, Long memberId, ReviewSort sort, int page, int size) {
         movieRatingService.getMovie(movieId);   // 없으면 MOVIE_NOT_FOUND
 
-        Page<Review> reviews = reviewRepository.findByMovieIdAndStatus(
-                movieId, ReviewStatus.VISIBLE, PageRequest.of(page, size, sort.getSort()));
+        Page<Review> reviews = reviewRepository.findByMovieIdAndStatusIn(
+                movieId, LISTED_STATUSES, PageRequest.of(page, size, sort.getSort()));
         Set<Long> likedIds = findLikedReviewIds(memberId, reviews.getContent());
 
         return PageResponse.from(reviews.map(r -> ReviewResponse.of(r, likedIds.contains(r.getId()))));
     }
 
     public PageResponse<ReviewWithMovieResponse> getReviews(ReviewSort sort, int page, int size) {
-        Page<Review> reviews = reviewRepository.findByStatus(
-                ReviewStatus.VISIBLE, PageRequest.of(page, size, sort.getSort()));
+        // 비활성 영화의 리뷰는 전체 목록에서 뺀다 (내 리뷰에는 남김)
+        Page<Review> reviews = reviewRepository.findByStatusInAndMovieActiveTrue(
+                LISTED_STATUSES, PageRequest.of(page, size, sort.getSort()));
         return PageResponse.from(reviews.map(ReviewWithMovieResponse::withAuthor));
     }
 
     public PageResponse<ReviewWithMovieResponse> getMyReviews(Long memberId, int page, int size) {
-        Page<Review> reviews = reviewRepository.findByMemberIdAndStatus(
-                memberId, ReviewStatus.VISIBLE,
+        Page<Review> reviews = reviewRepository.findByMemberIdAndStatusIn(
+                memberId, LISTED_STATUSES,
                 PageRequest.of(page, size, ReviewSort.LATEST.getSort()));
         return PageResponse.from(reviews.map(ReviewWithMovieResponse::forMine));
     }
@@ -135,6 +141,11 @@ public class ReviewService {
 
         Review review = findReviewForUpdate(reviewId);
         review.validateModifiableBy(memberId);
+
+        // 비활성 영화의 리뷰는 수정할 수 없다 (삭제는 허용)
+        if (!review.getMovie().isActive()) {
+            throw new BusinessException(CommonErrorCode.MOVIE_NOT_FOUND);
+        }
 
         BigDecimal oldRating = review.getRating();
         review.update(newRating, request.content(), request.spoiler());
@@ -163,7 +174,7 @@ public class ReviewService {
     }
 
     /**
-     * 관리자 파트(DELETE /api/admin/reviews/{id})에서 호출. VISIBLE → BLIND + 평점 집계 차감을 한 트랜잭션으로 처리.
+     * 관리자 파트(PATCH /api/admin/reviews/{reviewId}/blind)에서 호출. VISIBLE → BLIND + 평점 집계 차감을 한 트랜잭션으로 처리.
      * 상태 변경은 조건부 UPDATE라서, 이미 BLIND/DELETED면 반영 행이 0 → 차감하지 않는다 (중복 블라인드·작성자 삭제와 겹쳐도 안전).
      * 존재하지 않는 리뷰만 REVIEW_NOT_FOUND, 이미 숨겨진 리뷰는 아무것도 하지 않는다 (멱등).
      */
