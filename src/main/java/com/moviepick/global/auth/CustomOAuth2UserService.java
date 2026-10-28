@@ -84,9 +84,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         member.releaseSuspensionIfExpired();
 
             // 아직 정지 상태이거나 탈퇴한 회원은 로그인 차단
+        // 실패 처리기가 정지·탈퇴를 구분할 수 있도록 오류 코드를 붙인다
         if (member.getStatus() != MemberStatus.ACTIVE) {
-            throw new OAuth2AuthenticationException(
-                    "로그인할 수 없는 회원입니다."
+            throw OAuth2LoginFailureHandler.inactiveMemberException(
+                    member.getStatus()
             );
         }
 

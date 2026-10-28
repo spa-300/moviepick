@@ -6,6 +6,7 @@ import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
 import com.moviepick.global.auth.CustomOidcUserService;
 import com.moviepick.global.auth.JwtAuthenticationFilter;
+import com.moviepick.global.auth.OAuth2LoginFailureHandler;
 import com.moviepick.global.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -67,6 +68,8 @@ public class SecurityConfig {
                                 .oidcUserService(customOidcUserService)
                         )
                         .successHandler(oauth2LoginSuccessHandler)
+                        // 실패 시 백엔드 /login?error 대신 프론트 실패 화면으로 이동
+                        .failureHandler(new OAuth2LoginFailureHandler())
                 );
 
         return http.build();
