@@ -3,6 +3,7 @@ package com.moviepick.global.auth;
 
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.service.MemberService;
+import com.moviepick.global.exception.BusinessException;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -76,11 +77,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             Long memberId = Long.valueOf(claims.getSubject());
 
             // DB에서 회원 조회 및 ACTIVE 상태 확인
+            // 회원 없음·정지·탈퇴(BusinessException)만 인증 실패로 보고,
+            // DB 오류 같은 인프라 오류는 그대로 던져 공통 서버 오류(500)로 응답한다
             Member member;
 
             try {
                 member = memberService.getActiveMember(memberId);
-            } catch (RuntimeException e) {
+            } catch (BusinessException e) {
                 throw new IllegalArgumentException(
                         "존재하지 않거나 이용할 수 없는 회원입니다.",
                         e
