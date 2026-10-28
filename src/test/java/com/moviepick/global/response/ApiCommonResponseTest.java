@@ -87,7 +87,7 @@ class ApiCommonResponseTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.id").value(movie.getId()))
+                .andExpect(jsonPath("$.data.movieId").value(movie.getId()))
                 .andExpect(jsonPath("$.errorCode").doesNotExist());
     }
 

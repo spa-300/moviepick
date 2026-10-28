@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public record MovieDetailResponse(
-        Long id,
+        Long movieId,
         Long tmdbId,
         String title,
         String originalTitle,
@@ -69,7 +69,7 @@ public record MovieDetailResponse(
     }
 
     public record GenreResponse(
-            Integer id,
+            Integer genreId,
             String name
     ) {
     }
