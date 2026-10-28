@@ -22,6 +22,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.moviepick.domain.community.exception.PostErrorCode;
+import org.springframework.transaction.annotation.Isolation;
 
 import java.time.LocalDateTime;
 
@@ -56,9 +57,11 @@ public class AdminReportService {
                     return createReportResponse(report);
                 });
     }
+
     // 관리자: 게시글 수동 숨김
     @Transactional
     public void blindPost(Long postId) {
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() ->
                         new BusinessException(PostErrorCode.POST_NOT_FOUND));
@@ -68,50 +71,57 @@ public class AdminReportService {
             throw new BusinessException(PostErrorCode.POST_NOT_FOUND);
         }
 
+        // 게시글 숨김 처리
         post.blind();
     }
 
+
     // 관리자: 신고 승인 또는 반려
-    @Transactional
+    @Transactional(isolation = Isolation.READ_COMMITTED)
     public AdminReportResponse processReport(
             Long reportId,
             AdminReportProcessRequest request
     ) {
-
         // 1. 요청값 검증
         if (request == null || request.status() == null) {
-            throw new BusinessException(
-                    CommonErrorCode.INVALID_INPUT
-            );
+            throw new BusinessException(CommonErrorCode.INVALID_INPUT);
         }
 
         ReportStatus newStatus = request.status();
 
-        // 승인 또는 반려만 허용
         if (newStatus != ReportStatus.ACCEPTED
                 && newStatus != ReportStatus.REJECTED) {
-            throw new BusinessException(
-                    CommonErrorCode.INVALID_INPUT
-            );
+            throw new BusinessException(CommonErrorCode.INVALID_INPUT);
         }
 
-        // 2. 신고 조회 및 비관적 잠금
+        // 2. 신고 조회 (아직 잠금 획득하지 않음)
+        CommunityReport initialReport = communityReportRepository
+                .findById(reportId)
+                .orElseThrow(() ->
+                        new BusinessException(CommonErrorCode.NOT_FOUND));
+
+        // 3. 신고 대상 작성자 확인
+        Long memberId = findReportedMemberId(initialReport);
+
+        // 4. 회원 잠금 먼저 획득
+        // 동일 작성자에 대한 신고 승인 작업을 직렬화
+        Member member = memberRepository.findByIdForUpdate(memberId)
+                .orElseThrow(() ->
+                        new BusinessException(CommonErrorCode.NOT_FOUND));
+
+        // 5. 신고 행 잠금 획득
         CommunityReport report = communityReportRepository
                 .findByIdForUpdate(reportId)
-                .orElseThrow(() -> new BusinessException(
-                        CommonErrorCode.NOT_FOUND
-                ));
+                .orElseThrow(() ->
+                        new BusinessException(CommonErrorCode.NOT_FOUND));
 
-        // 3. 이미 처리된 신고라면 409
+        // 6. 잠금 획득 후 신고 상태 재검증
         if (report.getStatus() != ReportStatus.PENDING) {
-            throw new BusinessException(
-                    CommonErrorCode.DUPLICATE_REPORT
-            );
+            throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
         }
 
-        // 4. 신고 반려
+        // 7. 신고 반려
         if (newStatus == ReportStatus.REJECTED) {
-
             int updated = communityReportRepository.updateStatusIfPending(
                     reportId,
                     ReportStatus.REJECTED,
@@ -119,21 +129,26 @@ public class AdminReportService {
             );
 
             if (updated == 0) {
-                throw new BusinessException(
-                        CommonErrorCode.DUPLICATE_REPORT
-                );
+                throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
             }
 
-            // 벌크 UPDATE 결과를 관리 중인 엔티티에 반영
             entityManager.refresh(report);
-
             return createReportResponse(report);
         }
 
-        // 5. 신고 대상 작성자 ID 조회
-        Long memberId = findReportedMemberId(report);
+        // 8. 관리자 또는 탈퇴 회원 제재 제외
+        boolean skipSanction =
+                member.getRole() == Role.ADMIN
+                        || member.getStatus() == MemberStatus.WITHDRAWN;
 
-        // 게시글 신고 승인 시 게시글 블라인드 처리
+        // 9. 기존 제재 여부 확인
+        boolean alreadySanctioned =
+                adminSanctionRepository.existsByReportTarget(
+                        report.getTargetType(),
+                        report.getTargetId()
+                );
+
+        // 10. 게시글 신고 승인 시 블라인드 처리
         if (report.getTargetType() == ReportTargetType.POST) {
             Post post = postRepository.findById(report.getTargetId())
                     .orElseThrow(() ->
@@ -141,29 +156,10 @@ public class AdminReportService {
 
             post.blind();
         }
+
         // TODO: 댓글 신고 승인 시 댓글 숨김 처리
-        //  CommentStatus에 숨김 상태값이 없어 DB 변경이 필요하므로 이번 작업에서는 제외 (팀장 공유 필요)
 
-        // 6. 회원 잠금
-        // 같은 회원에 대한 제재 횟수 계산을 직렬화
-        Member member = memberRepository.findByIdForUpdate(memberId)
-                .orElseThrow(() -> new BusinessException(
-                        CommonErrorCode.NOT_FOUND
-                ));
-
-        // 관리자 또는 탈퇴 회원은 제재 대상에서 제외
-        boolean skipSanction =
-                member.getRole() == Role.ADMIN
-                        || member.getStatus() == MemberStatus.WITHDRAWN;
-
-        // 7. 동일 신고 대상에 제재가 있는지 확인
-        boolean alreadySanctioned =
-                adminSanctionRepository.existsByReportTarget(
-                        report.getTargetType(),
-                        report.getTargetId()
-                );
-
-        // 8. PENDING 상태의 신고만 승인
+        // 11. 신고 승인
         int updated = communityReportRepository.updateStatusIfPending(
                 reportId,
                 ReportStatus.ACCEPTED,
@@ -171,14 +167,12 @@ public class AdminReportService {
         );
 
         if (updated == 0) {
-            throw new BusinessException(
-                    CommonErrorCode.DUPLICATE_REPORT
-            );
+            throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
         }
-        // UPDATE 결과를 현재 신고 엔티티에 반영
+
         entityManager.refresh(report);
 
-        // 동일 게시글 또는 댓글의 나머지 PENDING 신고도 승인 처리
+        // 12. 동일 대상의 나머지 PENDING 신고 승인
         communityReportRepository.updateAllPendingByTarget(
                 report.getTargetType(),
                 report.getTargetId(),
@@ -186,40 +180,29 @@ public class AdminReportService {
                 ReportStatus.PENDING
         );
 
-        // 9. 동일 대상에 제재가 없다면 새로 적용
+        // 13. 중복 제재 방지
         if (!alreadySanctioned && !skipSanction) {
-            // 누적 제재 횟수 계산
             long count =
                     adminSanctionRepository.countByMemberId(memberId) + 1;
 
             LocalDateTime suspendedUntil;
 
             if (count == 1) {
-
-                // 첫 번째 제재: 1일 정지
                 suspendedUntil = LocalDateTime.now().plusDays(1);
-
             } else if (count == 2) {
-
-                // 두 번째 제재: 7일 정지
                 suspendedUntil = LocalDateTime.now().plusDays(7);
-
             } else {
-
-                // 세 번째 이상: 영구 정지
                 suspendedUntil = null;
             }
 
-            // 이미 영구 정지된 회원이라면 영구 정지 유지
+            // 영구 정지된 회원은 영구 정지 유지
             if (member.getStatus() == MemberStatus.SUSPENDED
                     && member.getSuspendedUntil() == null) {
                 suspendedUntil = null;
             }
 
-            // 회원 제재 적용
             member.suspend(suspendedUntil);
 
-            // 제재 이력 생성
             AdminSanction sanction = AdminSanction.create(
                     member,
                     report,
@@ -227,13 +210,13 @@ public class AdminReportService {
                     suspendedUntil
             );
 
-            // 제재 이력 저장
             adminSanctionRepository.save(sanction);
         }
 
-        // 10. 승인 상태가 반영된 신고 응답 반환
+        // 14. 처리 결과 반환
         return createReportResponse(report);
     }
+
 
     // 신고 대상 게시글 또는 댓글 작성자 찾기
     private Long findReportedMemberId(CommunityReport report) {
