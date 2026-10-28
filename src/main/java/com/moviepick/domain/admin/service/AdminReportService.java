@@ -117,7 +117,7 @@ public class AdminReportService {
 
         // 6. 잠금 획득 후 신고 상태 재검증
         if (report.getStatus() != ReportStatus.PENDING) {
-            throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+            throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         // 7. 신고 반려
@@ -129,7 +129,7 @@ public class AdminReportService {
             );
 
             if (updated == 0) {
-                throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+                throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
             }
 
             entityManager.refresh(report);
@@ -170,7 +170,7 @@ public class AdminReportService {
         );
 
         if (updated == 0) {
-            throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+            throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         entityManager.refresh(report);
