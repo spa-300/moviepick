@@ -41,8 +41,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @EntityGraph(attributePaths = "member")
     Page<Review> findByMovieIdAndStatus(Long movieId, ReviewStatus status, Pageable pageable);
 
+    // 전체 리뷰 목록용: 활성 영화의 리뷰만
     @EntityGraph(attributePaths = {"member", "movie"})
-    Page<Review> findByStatus(ReviewStatus status, Pageable pageable);
+    Page<Review> findByStatusAndMovieActiveTrue(ReviewStatus status, Pageable pageable);
 
     @EntityGraph(attributePaths = "movie")
     Page<Review> findByMemberIdAndStatus(Long memberId, ReviewStatus status, Pageable pageable);

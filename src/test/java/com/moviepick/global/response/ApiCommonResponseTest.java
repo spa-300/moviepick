@@ -135,9 +135,9 @@ class ApiCommonResponseTest {
     }
 
     @Test
-    @DisplayName("없는 영화는 404 (영화 도메인은 공통 NOT_FOUND 사용)")
+    @DisplayName("없는 영화는 404 MOVIE_NOT_FOUND (상세와 리뷰가 같은 이름)")
     void missingMovie_404() throws Exception {
-        expectError(mvc.perform(get("/api/movies/999999")), 404, "NOT_FOUND");
+        expectError(mvc.perform(get("/api/movies/999999")), 404, "MOVIE_NOT_FOUND");
     }
 
     @Test

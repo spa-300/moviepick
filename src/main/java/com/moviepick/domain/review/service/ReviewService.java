@@ -18,6 +18,7 @@ import com.moviepick.domain.review.exception.ReviewErrorCode;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
+import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.global.response.PageResponse;
 
 import java.math.BigDecimal;
@@ -104,7 +105,8 @@ public class ReviewService {
     }
 
     public PageResponse<ReviewWithMovieResponse> getReviews(ReviewSort sort, int page, int size) {
-        Page<Review> reviews = reviewRepository.findByStatus(
+        // 비활성 영화의 리뷰는 전체 목록에서 뺀다 (내 리뷰에는 남김)
+        Page<Review> reviews = reviewRepository.findByStatusAndMovieActiveTrue(
                 ReviewStatus.VISIBLE, PageRequest.of(page, size, sort.getSort()));
         return PageResponse.from(reviews.map(ReviewWithMovieResponse::withAuthor));
     }
@@ -135,6 +137,11 @@ public class ReviewService {
 
         Review review = findReviewForUpdate(reviewId);
         review.validateModifiableBy(memberId);
+
+        // 비활성 영화의 리뷰는 수정할 수 없다 (삭제는 허용)
+        if (!review.getMovie().isActive()) {
+            throw new BusinessException(CommonErrorCode.MOVIE_NOT_FOUND);
+        }
 
         BigDecimal oldRating = review.getRating();
         review.update(newRating, request.content(), request.spoiler());
