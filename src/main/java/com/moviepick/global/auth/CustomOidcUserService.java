@@ -48,7 +48,9 @@ public class CustomOidcUserService extends OidcUserService {
         String email = oidcUser.getEmail();
         String nickname = oidcUser.getFullName();
 
-        if (nickname == null || nickname.isBlank()) {
+        // 이름이 없거나 탈퇴 회원용 값(withdrawn_)이면 기본 이름을 쓴다
+        if (nickname == null || nickname.isBlank()
+                || Member.isReservedNickname(nickname)) {
             nickname = "구글회원_" + providerId;
         }
 

@@ -61,7 +61,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         String nickname = getString(profile.get("nickname"));
 
-        if (nickname == null || nickname.isBlank()) {
+        // 이름이 없거나 탈퇴 회원용 값(withdrawn_)이면 기본 이름을 쓴다
+        if (nickname == null || nickname.isBlank()
+                || Member.isReservedNickname(nickname)) {
             nickname = "카카오회원_" + providerId;
         }
 

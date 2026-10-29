@@ -111,14 +111,30 @@ class SocialMemberRaceTest {
                 .findByProviderAndProviderId(eq(provider), eq(providerId));
     }
 
-    @SuppressWarnings("unchecked")
+    @Test
+    @DisplayName("소셜 이름이 탈퇴 예약값(withdrawn_)으로 시작하면 기본 이름으로 가입한다 (카카오·구글)")
+    void reservedSocialNickname() {
+        customOAuth2UserService.loadUser(kakaoRequest("Withdrawn_7"));
+        customOidcUserService.loadUser(googleRequest("withdrawn_8"));
+
+        assertThat(memberRepository.findByProviderAndProviderId(AuthProvider.KAKAO, KAKAO_ID))
+                .get().extracting(Member::getNickname).isEqualTo("카카오회원_" + KAKAO_ID);
+        assertThat(memberRepository.findByProviderAndProviderId(AuthProvider.GOOGLE, GOOGLE_SUB))
+                .get().extracting(Member::getNickname).isEqualTo("구글회원_" + GOOGLE_SUB);
+    }
+
     private OAuth2UserRequest kakaoRequest() {
+        return kakaoRequest("카카오");
+    }
+
+    @SuppressWarnings("unchecked")
+    private OAuth2UserRequest kakaoRequest(String nickname) {
         RestOperations restOperations = mock(RestOperations.class);
         Map<String, Object> attributes = Map.of(
                 "id", Long.valueOf(KAKAO_ID),
                 "kakao_account", Map.of(
                         "email", "kakao@test.com",
-                        "profile", Map.of("nickname", "카카오")));
+                        "profile", Map.of("nickname", nickname)));
         when(restOperations.exchange(any(RequestEntity.class), any(ParameterizedTypeReference.class)))
                 .thenReturn(ResponseEntity.ok(attributes));
         // setRestOperations는 final이라 트랜잭션 프록시가 아닌 실제 객체에 넣어야 한다
@@ -138,6 +154,10 @@ class SocialMemberRaceTest {
     }
 
     private OidcUserRequest googleRequest() {
+        return googleRequest("구글");
+    }
+
+    private OidcUserRequest googleRequest(String name) {
         ClientRegistration registration = ClientRegistration.withRegistrationId("google")
                 .clientId("test-client")
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
@@ -152,7 +172,7 @@ class SocialMemberRaceTest {
         OidcIdToken idToken = new OidcIdToken("id-token", now, now.plusSeconds(60), Map.of(
                 "iss", "https://accounts.example",
                 "sub", GOOGLE_SUB,
-                "name", "구글"));
+                "name", name));
         return new OidcUserRequest(registration, accessToken(), idToken);
     }
 

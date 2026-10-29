@@ -1,6 +1,8 @@
 package com.moviepick.domain.member.dto.request;
 
+import com.moviepick.domain.member.entity.Member;
 import com.moviepick.global.validation.MaxUtf8Bytes;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -22,4 +24,16 @@ public record SignupRequest(
         String nickname
 
 ) {
+
+    // 탈퇴 회원용 이메일(@withdrawn.local)은 쓸 수 없다
+    @AssertTrue(message = "사용할 수 없는 이메일입니다.")
+    public boolean isEmailAllowed() {
+        return !Member.isReservedEmail(email);
+    }
+
+    // 탈퇴 회원용 닉네임(withdrawn_으로 시작)은 쓸 수 없다
+    @AssertTrue(message = "사용할 수 없는 닉네임입니다.")
+    public boolean isNicknameAllowed() {
+        return !Member.isReservedNickname(nickname);
+    }
 }
