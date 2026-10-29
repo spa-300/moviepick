@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.moviepick.domain.admin.dto.request.AdminReportProcessRequest;
 import com.moviepick.domain.admin.repository.AdminSanctionRepository;
-import com.moviepick.domain.admin.service.AdminCommentService;
 import com.moviepick.domain.admin.service.AdminReportService;
 import com.moviepick.domain.community.dto.request.CommentCreateRequest;
 import com.moviepick.domain.community.dto.request.CommentUpdateRequest;
@@ -41,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** 댓글 신고 승인 → 숨김(BLINDED), 자리 유지 + 문구, 원문 미전송, 숨긴 댓글 조작 거절 (REPORT-02, B1) */
 @DataJpaTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-@Import({JpaAuditingConfig.class, AdminReportService.class, AdminCommentService.class,
+@Import({JpaAuditingConfig.class, AdminReportService.class,
         CommentService.class, CommentLikeService.class})
 class CommentBlindTest {
 
@@ -51,8 +50,6 @@ class CommentBlindTest {
 
     @Autowired
     private AdminReportService adminReportService;
-    @Autowired
-    private AdminCommentService adminCommentService;
     @Autowired
     private CommentService commentService;
     @Autowired
@@ -149,7 +146,7 @@ class CommentBlindTest {
         acceptReport(blindTargetId);
         assertThat(commentCount()).isEqualTo(1);   // 숨길 때 이미 1 줄었다
 
-        adminCommentService.deleteComment(blindTargetId);
+        commentService.deleteByAdmin(blindTargetId);
 
         assertThat(statusOf(blindTargetId)).isEqualTo("DELETED");
         assertThat(commentCount()).isEqualTo(1);

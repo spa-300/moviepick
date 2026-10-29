@@ -14,6 +14,8 @@ import com.moviepick.domain.community.entity.ReportTargetType;
 import com.moviepick.domain.community.exception.PostErrorCode;
 import com.moviepick.domain.community.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
+import com.moviepick.domain.community.service.PostLikeService;
+import com.moviepick.domain.community.service.PostService;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.entity.Role;
@@ -35,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 /** 벌크 UPDATE와 refresh가 실제 커밋 기준으로 동작하는지 보려고 테스트 트랜잭션을 끄고 H2로 확인한다. */
 @DataJpaTest
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
-@Import({JpaAuditingConfig.class, AdminReportService.class})
+@Import({JpaAuditingConfig.class, AdminReportService.class, PostService.class, PostLikeService.class})
 class AdminReportServiceTest {
 
     private static final AdminReportProcessRequest ACCEPT =
@@ -43,6 +45,9 @@ class AdminReportServiceTest {
 
     @Autowired
     private AdminReportService adminReportService;
+    // 관리자 게시글 수동 숨김은 게시글 서비스가 처리한다
+    @Autowired
+    private PostService postService;
     // 리뷰 신고 승인용 의존성. 이 테스트는 리뷰를 다루지 않는다
     @MockitoBean
     private ReviewService reviewService;
@@ -181,11 +186,11 @@ class AdminReportServiceTest {
         deleted.delete();
         postRepository.save(deleted);
 
-        adminReportService.blindPost(post.getId());
+        postService.blindByAdmin(post.getId());
 
         assertThat(postRepository.findById(post.getId()).orElseThrow().getStatus())
                 .isEqualTo(PostStatus.BLINDED);
-        assertThatThrownBy(() -> adminReportService.blindPost(deleted.getId()))
+        assertThatThrownBy(() -> postService.blindByAdmin(deleted.getId()))
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
                 .isEqualTo(PostErrorCode.POST_NOT_FOUND);

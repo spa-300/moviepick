@@ -2,7 +2,6 @@ package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.admin.repository.AdminSanctionRepository;
-import com.moviepick.domain.admin.service.AdminMemberService;
 import com.moviepick.domain.admin.service.AdminReportService;
 import com.moviepick.domain.community.repository.CommentRepository;
 import com.moviepick.domain.community.repository.CommunityReportRepository;
@@ -17,6 +16,7 @@ import com.moviepick.global.security.CustomAuthenticationEntryPoint;
 import com.moviepick.domain.member.oauth.CustomOAuth2UserService;
 import com.moviepick.domain.member.oauth.CustomOidcUserService;
 import com.moviepick.global.security.JwtProvider;
+import com.moviepick.global.security.RefreshTokenService;
 import com.moviepick.domain.member.oauth.OAuth2LoginSuccessHandler;
 import com.moviepick.global.security.SecurityConfig;
 import jakarta.persistence.EntityManager;
@@ -58,7 +58,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         MemberStatusChecker.class,
         OAuth2LoginFailureHandler.class,
         AdminReportService.class,
-        AdminMemberService.class
+        MemberService.class
 })
 @ActiveProfiles("test")
 @WithMockUser(roles = "ADMIN")
@@ -86,7 +86,7 @@ class AdminListSizeTest {
     private EntityManager entityManager;
 
     @MockitoBean
-    private MemberService memberService;
+    private RefreshTokenService refreshTokenService;
     @MockitoBean
     private JwtProvider jwtProvider;
     @MockitoBean

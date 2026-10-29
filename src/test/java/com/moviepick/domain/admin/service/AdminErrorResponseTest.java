@@ -4,11 +4,16 @@ import com.moviepick.domain.community.entity.Comment;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.exception.CommentErrorCode;
 import com.moviepick.domain.community.repository.CommentRepository;
+import com.moviepick.domain.community.repository.PostRepository;
+import com.moviepick.domain.community.service.CommentLikeService;
+import com.moviepick.domain.community.service.CommentService;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.ErrorCode;
+import com.moviepick.global.security.RefreshTokenService;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,8 +32,11 @@ class AdminErrorResponseTest {
     private final MemberRepository memberRepository = mock(MemberRepository.class);
     private final CommentRepository commentRepository = mock(CommentRepository.class);
 
-    private final AdminMemberService adminMemberService = new AdminMemberService(memberRepository);
-    private final AdminCommentService adminCommentService = new AdminCommentService(commentRepository);
+    // 관리자 정지 해제·댓글 삭제는 회원·댓글 서비스가 처리한다
+    private final MemberService memberService =
+            new MemberService(mock(RefreshTokenService.class), memberRepository);
+    private final CommentService commentService = new CommentService(
+            commentRepository, mock(PostRepository.class), memberRepository, mock(CommentLikeService.class));
 
     private void assertError(ThrowingCallable call, ErrorCode expected, HttpStatus status) {
         Throwable thrown = catchThrowable(call);
@@ -44,7 +52,7 @@ class AdminErrorResponseTest {
     void release_unknownMember() {
         given(memberRepository.findById(99L)).willReturn(Optional.empty());
 
-        assertError(() -> adminMemberService.releaseSuspension(99L),
+        assertError(() -> memberService.releaseSuspension(99L),
                 MemberErrorCode.MEMBER_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
@@ -54,7 +62,7 @@ class AdminErrorResponseTest {
         given(memberRepository.findById(1L))
                 .willReturn(Optional.of(Member.createLocal("a@test.com", "encoded", "a")));
 
-        assertError(() -> adminMemberService.releaseSuspension(1L),
+        assertError(() -> memberService.releaseSuspension(1L),
                 MemberErrorCode.MEMBER_NOT_SUSPENDED, HttpStatus.CONFLICT);
     }
 
@@ -63,7 +71,7 @@ class AdminErrorResponseTest {
     void deleteComment_unknown() {
         given(commentRepository.findById(99L)).willReturn(Optional.empty());
 
-        assertError(() -> adminCommentService.deleteComment(99L),
+        assertError(() -> commentService.deleteByAdmin(99L),
                 CommentErrorCode.COMMENT_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
@@ -75,7 +83,7 @@ class AdminErrorResponseTest {
         comment.delete();
         given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
 
-        assertError(() -> adminCommentService.deleteComment(1L),
+        assertError(() -> commentService.deleteByAdmin(1L),
                 CommentErrorCode.COMMENT_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 }

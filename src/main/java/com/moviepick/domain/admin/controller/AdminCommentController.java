@@ -1,6 +1,6 @@
 package com.moviepick.domain.admin.controller;
 
-import com.moviepick.domain.admin.service.AdminCommentService;
+import com.moviepick.domain.community.service.CommentService;
 import com.moviepick.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/admin/comments")
 public class AdminCommentController {
 
-    private final AdminCommentService adminCommentService;
+    private final CommentService commentService;
 
     // 관리자: 댓글 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Void>> deleteComment(
             @PathVariable Long id
     ) {
-        adminCommentService.deleteComment(id);
+        commentService.deleteByAdmin(id);
 
         return ResponseEntity.ok(ApiResponse.ok());
     }

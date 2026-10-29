@@ -25,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.moviepick.domain.community.exception.PostErrorCode;
 import org.springframework.transaction.annotation.Isolation;
 
 import java.time.LocalDateTime;
@@ -50,24 +49,6 @@ public class AdminReportService {
                 .findAll(PageRequest.of(page, size))
                 .map(this::createReportResponse);
     }
-
-    // 관리자: 게시글 수동 숨김
-    @Transactional
-    public void blindPost(Long postId) {
-
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() ->
-                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
-
-        // 이미 삭제된 게시글은 숨김 처리하지 않음
-        if (post.getStatus() == PostStatus.DELETED) {
-            throw new BusinessException(PostErrorCode.POST_NOT_FOUND);
-        }
-
-        // 게시글 숨김 처리
-        post.blind();
-    }
-
 
     // 관리자: 신고 승인 또는 반려
     @Transactional(isolation = Isolation.READ_COMMITTED)

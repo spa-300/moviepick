@@ -1,9 +1,9 @@
 
 package com.moviepick.domain.admin.controller;
 
-import com.moviepick.domain.admin.service.AdminMemberService;
 import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.entity.MemberStatus;
+import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.global.response.ApiResponse;
 import com.moviepick.global.response.PageResponse;
 import jakarta.validation.constraints.Min;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class AdminMemberController {
 
-    private final AdminMemberService adminMemberService;
+    private final MemberService memberService;
 
     // 관리자: 회원 목록 및 상태별 조회
     @GetMapping
@@ -32,7 +32,7 @@ public class AdminMemberController {
             @RequestParam(defaultValue = "20") int size
     ) {
         Page<MemberResponse> members =
-                adminMemberService.getMembers(status, page, size);
+                memberService.getMembers(status, page, size);
 
         return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(members)));
     }
@@ -43,7 +43,7 @@ public class AdminMemberController {
             @PathVariable Long memberId
     ) {
         MemberResponse member =
-                adminMemberService.releaseSuspension(memberId);
+                memberService.releaseSuspension(memberId);
 
         return ResponseEntity.ok(ApiResponse.ok(member));
     }

@@ -1,7 +1,6 @@
 package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.member.service.MemberStatusChecker;
-import com.moviepick.domain.admin.service.AdminReviewService;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.security.CustomAccessDeniedHandler;
@@ -46,8 +45,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         CustomAuthenticationEntryPoint.class,
         CustomAccessDeniedHandler.class,
         MemberStatusChecker.class,
-        OAuth2LoginFailureHandler.class,
-        AdminReviewService.class
+        OAuth2LoginFailureHandler.class
 })
 @ActiveProfiles("test")
 @WithMockUser(roles = "ADMIN")

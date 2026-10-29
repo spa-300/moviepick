@@ -241,4 +241,21 @@ public class PostService {
 
         post.delete();
     }
+
+    // 관리자: 게시글 수동 숨김
+    @Transactional
+    public void blindByAdmin(Long postId) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
+
+        // 이미 삭제된 게시글은 숨김 처리하지 않음
+        if (post.getStatus() == PostStatus.DELETED) {
+            throw new BusinessException(PostErrorCode.POST_NOT_FOUND);
+        }
+
+        // 게시글 숨김 처리
+        post.blind();
+    }
 }
