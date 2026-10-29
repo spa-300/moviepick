@@ -18,7 +18,7 @@ import com.moviepick.domain.review.exception.ReviewErrorCode;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.domain.movie.exception.MovieErrorCode;
 import com.moviepick.global.response.PageResponse;
 
 import java.math.BigDecimal;
@@ -144,7 +144,7 @@ public class ReviewService {
 
         // 비활성 영화의 리뷰는 수정할 수 없다 (삭제는 허용)
         if (!review.getMovie().isActive()) {
-            throw new BusinessException(CommonErrorCode.MOVIE_NOT_FOUND);
+            throw new BusinessException(MovieErrorCode.MOVIE_NOT_FOUND);
         }
 
         BigDecimal oldRating = review.getRating();

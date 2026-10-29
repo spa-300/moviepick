@@ -15,7 +15,7 @@ import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.domain.community.exception.ReportErrorCode;
 import com.moviepick.global.exception.ErrorCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -94,11 +94,11 @@ class AdminReportReprocessTest {
     @Test
     @DisplayName("REPORT_ALREADY_PROCESSED는 409이고 신고자 중복(DUPLICATE_REPORT)과 문구가 다르다")
     void errorCodeShape() {
-        ErrorCode code = CommonErrorCode.valueOf("REPORT_ALREADY_PROCESSED");
+        ErrorCode code = ReportErrorCode.valueOf("REPORT_ALREADY_PROCESSED");
 
         org.assertj.core.api.Assertions.assertThat(code.getStatus()).isEqualTo(HttpStatus.CONFLICT);
         org.assertj.core.api.Assertions.assertThat(code.getMessage())
-                .isNotEqualTo(CommonErrorCode.DUPLICATE_REPORT.getMessage());
+                .isNotEqualTo(ReportErrorCode.DUPLICATE_REPORT.getMessage());
     }
 
     private void assertAlreadyProcessed(Long reportId, AdminReportProcessRequest request) {

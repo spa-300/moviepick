@@ -3,7 +3,7 @@ package com.moviepick.domain.movie.service;
 import com.moviepick.domain.movie.entity.Movie;
 import com.moviepick.domain.movie.repository.MovieRepository;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.domain.movie.exception.MovieErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +23,7 @@ public class MovieRatingService {
         return movieRepository.findByIdAndActiveTrue(movieId)
                 .orElseThrow(() ->
                         new BusinessException(
-                                CommonErrorCode.MOVIE_NOT_FOUND
+                                MovieErrorCode.MOVIE_NOT_FOUND
                         )
                 );
     }

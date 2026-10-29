@@ -5,6 +5,7 @@ import com.moviepick.domain.movie.client.dto.TmdbMovieResponse;
 import com.moviepick.domain.movie.client.dto.TmdbPopularResponse;
 import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
 import com.moviepick.global.exception.BusinessException;
+import com.moviepick.domain.movie.exception.MovieErrorCode;
 import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +75,7 @@ public class MovieCollectionService {
 
             } catch (RestClientException | IllegalStateException e) {
 
-                CommonErrorCode errorCode = resolveTmdbError(e);
+                MovieErrorCode errorCode = resolveTmdbError(e);
 
                 log.warn(
                         "TMDB 인기 영화 목록 조회 실패: page={}, reason={}",
@@ -149,7 +150,7 @@ public class MovieCollectionService {
                     }
 
                     // 인증 오류, 연결 실패 등 TMDB 장애
-                    CommonErrorCode errorCode = resolveTmdbError(e);
+                    MovieErrorCode errorCode = resolveTmdbError(e);
 
                     log.warn(
                             "TMDB 영화 상세 조회 실패: page={}, tmdbId={}, reason={}",
@@ -230,8 +231,8 @@ public class MovieCollectionService {
         );
     }
 
-    // TMDB API 호출 예외를 공통 ErrorCode로 변환
-    private CommonErrorCode resolveTmdbError(RuntimeException e) {
+    // TMDB API 호출 예외를 영화 오류 코드로 변환
+    private MovieErrorCode resolveTmdbError(RuntimeException e) {
 
         // TMDB HTTP 응답 오류
         if (e instanceof RestClientResponseException responseException) {
@@ -240,21 +241,21 @@ public class MovieCollectionService {
 
             // 인증 토큰 오류
             if (status == 401) {
-                return CommonErrorCode.TMDB_AUTH_FAILED;
+                return MovieErrorCode.TMDB_AUTH_FAILED;
             }
 
             // 접근 권한 오류
             if (status == 403) {
-                return CommonErrorCode.TMDB_ACCESS_DENIED;
+                return MovieErrorCode.TMDB_ACCESS_DENIED;
             }
         }
 
         // 네트워크 연결 실패 및 타임아웃
         if (e instanceof ResourceAccessException) {
-            return CommonErrorCode.TMDB_CONNECTION_FAILED;
+            return MovieErrorCode.TMDB_CONNECTION_FAILED;
         }
 
         // 기타 TMDB API 응답 오류
-        return CommonErrorCode.TMDB_RESPONSE_FAILED;
+        return MovieErrorCode.TMDB_RESPONSE_FAILED;
     }
 }

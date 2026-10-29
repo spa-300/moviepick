@@ -17,6 +17,7 @@ import com.moviepick.domain.review.entity.Review;
 import com.moviepick.domain.review.exception.ReviewErrorCode;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
+import com.moviepick.domain.community.exception.ReportErrorCode;
 import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;
@@ -54,7 +55,7 @@ public class CommunityReportService {
         // 본인이 작성한 게시글은 신고할 수 없음
         if (post.getMember().getId().equals(reporterId)) {
             throw new BusinessException(
-                    CommonErrorCode.CANNOT_REPORT_OWN_CONTENT);
+                    ReportErrorCode.CANNOT_REPORT_OWN_CONTENT);
         }
 
         return createReport(
@@ -86,7 +87,7 @@ public class CommunityReportService {
         // 본인이 작성한 댓글은 신고할 수 없음
         if (comment.getMember().getId().equals(reporterId)) {
             throw new BusinessException(
-                    CommonErrorCode.CANNOT_REPORT_OWN_CONTENT);
+                    ReportErrorCode.CANNOT_REPORT_OWN_CONTENT);
         }
 
         return createReport(
@@ -115,7 +116,7 @@ public class CommunityReportService {
         // 본인이 작성한 리뷰는 신고할 수 없음
         if (review.isOwnedBy(reporterId)) {
             throw new BusinessException(
-                    CommonErrorCode.CANNOT_REPORT_OWN_CONTENT);
+                    ReportErrorCode.CANNOT_REPORT_OWN_CONTENT);
         }
 
         return createReport(
@@ -146,7 +147,7 @@ public class CommunityReportService {
                         targetId
                 )) {
             throw new BusinessException(
-                    CommonErrorCode.DUPLICATE_REPORT);
+                    ReportErrorCode.DUPLICATE_REPORT);
         }
 
         CommunityReport report;
@@ -170,7 +171,7 @@ public class CommunityReportService {
             savedReport = communityReportRepository.saveAndFlush(report);
         } catch (DataIntegrityViolationException exception) {
             if (isReportUniqueConstraintViolation(exception)) {
-                throw new BusinessException(CommonErrorCode.DUPLICATE_REPORT);
+                throw new BusinessException(ReportErrorCode.DUPLICATE_REPORT);
             }
 
             throw exception;

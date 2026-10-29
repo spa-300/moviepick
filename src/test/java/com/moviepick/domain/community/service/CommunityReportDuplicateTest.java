@@ -13,7 +13,7 @@ import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.domain.community.exception.ReportErrorCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -82,7 +82,7 @@ class CommunityReportDuplicateTest {
         assertThatThrownBy(call::run)
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(CommonErrorCode.DUPLICATE_REPORT);
+                .isEqualTo(ReportErrorCode.DUPLICATE_REPORT);
     }
 
     private Member saveMember(String nickname) {

@@ -16,6 +16,7 @@ import com.moviepick.domain.review.entity.Review;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.exception.BusinessException;
+import com.moviepick.domain.community.exception.ReportErrorCode;
 import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.domain.member.entity.Role;
 import jakarta.persistence.EntityManager;
@@ -109,7 +110,7 @@ public class AdminReportService {
 
         // 6. 잠금 획득 후 신고 상태 재검증
         if (report.getStatus() != ReportStatus.PENDING) {
-            throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
+            throw new BusinessException(ReportErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         // 7. 신고 반려
@@ -121,7 +122,7 @@ public class AdminReportService {
             );
 
             if (updated == 0) {
-                throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
+                throw new BusinessException(ReportErrorCode.REPORT_ALREADY_PROCESSED);
             }
 
             entityManager.refresh(report);
@@ -174,7 +175,7 @@ public class AdminReportService {
         );
 
         if (updated == 0) {
-            throw new BusinessException(CommonErrorCode.REPORT_ALREADY_PROCESSED);
+            throw new BusinessException(ReportErrorCode.REPORT_ALREADY_PROCESSED);
         }
 
         entityManager.refresh(report);
