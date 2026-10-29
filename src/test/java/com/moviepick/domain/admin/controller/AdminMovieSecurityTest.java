@@ -1,4 +1,4 @@
-package com.moviepick.domain.movie.controller;
+package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.member.service.MemberService;

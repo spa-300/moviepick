@@ -1,4 +1,4 @@
-package com.moviepick.domain.admin.service;
+package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.community.entity.Comment;
 import com.moviepick.domain.community.entity.Post;

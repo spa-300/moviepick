@@ -1,4 +1,4 @@
-package com.moviepick.domain.movie.controller;
+package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
 import com.moviepick.domain.movie.service.MovieCollectionService;
