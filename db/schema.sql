@@ -60,7 +60,7 @@ CREATE TABLE `community_reports` (
   `reason` varchar(20) NOT NULL,
   `detail` varchar(200) DEFAULT NULL,
   `status` enum('ACCEPTED','PENDING','REJECTED') NOT NULL,
-  `target_type` enum('COMMENT','POST') NOT NULL,
+  `target_type` enum('COMMENT','POST','REVIEW') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_report_reporter_target` (`reporter_id`,`target_type`,`target_id`),
   KEY `FK12s2daju3wxyu5g9baq6ij9od` (`reporter_id`),

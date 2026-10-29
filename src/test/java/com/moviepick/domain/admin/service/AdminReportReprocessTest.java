@@ -12,6 +12,7 @@ import com.moviepick.domain.community.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +41,9 @@ class AdminReportReprocessTest {
 
     @Autowired
     private AdminReportService adminReportService;
+    // 리뷰 신고 승인용 의존성. 이 테스트는 리뷰를 다루지 않는다
+    @MockitoBean
+    private ReviewService reviewService;
     @Autowired
     private MemberRepository memberRepository;
     @Autowired

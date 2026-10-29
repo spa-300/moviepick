@@ -12,6 +12,9 @@ import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.domain.review.entity.Review;
+import com.moviepick.domain.review.repository.ReviewRepository;
+import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.domain.member.entity.Role;
@@ -36,26 +39,15 @@ public class AdminReportService {
     private final MemberRepository memberRepository;
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
+    private final ReviewRepository reviewRepository;
+    private final ReviewService reviewService;
     private final EntityManager entityManager;
 
     // 관리자: 신고 목록 조회
     public Page<AdminReportResponse> getReports(int page, int size) {
         return communityReportRepository
                 .findAll(PageRequest.of(page, size))
-                .map(report -> {
-                    if (report.getTargetType() == ReportTargetType.POST) {
-                        return postRepository.findById(report.getTargetId())
-                                .map(post -> AdminReportResponse.from(
-                                        report,
-                                        post.getTitle(),
-                                        createPreview(post.getContent()),
-                                        post.getMember().getNickname()
-                                ))
-                                .orElseGet(() -> AdminReportResponse.from(report));
-                    }
-
-                    return createReportResponse(report);
-                });
+                .map(this::createReportResponse);
     }
 
     // 관리자: 게시글 수동 숨김
@@ -234,12 +226,19 @@ public class AdminReportService {
             postRepository.decreaseCommentCount(blindedCommentPostId);
         }
 
+        // 14-1. 리뷰 신고 승인 시 숨김 + 평점 차감 (관리자 PATCH …/blind와 같은 코드 경로, B3)
+        // 공개 리뷰만 숨기고 차감하며, 이미 숨김·삭제된 리뷰는 그대로 둔다.
+        // 이 처리도 상태 변경 쿼리가 영속성 컨텍스트를 비우므로 회원 정지·제재 저장 뒤에 실행한다
+        if (report.getTargetType() == ReportTargetType.REVIEW) {
+            reviewService.blind(report.getTargetId());
+        }
+
         // 15. 처리 결과 반환
         return createReportResponse(report);
     }
 
 
-    // 신고 대상 게시글 또는 댓글 작성자 찾기
+    // 신고 대상 게시글·댓글·리뷰 작성자 찾기
     private Long findReportedMemberId(CommunityReport report) {
 
         switch (report.getTargetType()) {
@@ -266,12 +265,23 @@ public class AdminReportService {
                 return comment.getMember().getId();
             }
 
+            case REVIEW -> {
+
+                Review review = reviewRepository
+                        .findById(report.getTargetId())
+                        .orElseThrow(() -> new BusinessException(
+                                CommonErrorCode.NOT_FOUND
+                        ));
+
+                return review.getMember().getId();
+            }
+
             default -> throw new BusinessException(
                     CommonErrorCode.INVALID_INPUT
             );
         }
     }
-    // 게시글 본문을 최대 100자로 잘라 미리보기 생성
+    // 게시글 본문·리뷰 내용을 최대 100자로 잘라 미리보기 생성
     private String createPreview(String content) {
         if (content == null) {
             return null;
@@ -293,6 +303,17 @@ public class AdminReportService {
                             post.getTitle(),
                             createPreview(post.getContent()),
                             post.getMember().getNickname()
+                    ))
+                    .orElseGet(() -> AdminReportResponse.from(report));
+        }
+
+        if (report.getTargetType() == ReportTargetType.REVIEW) {
+            return reviewRepository.findById(report.getTargetId())
+                    .map(review -> AdminReportResponse.forReview(
+                            report,
+                            createPreview(review.getContent()),
+                            review.getMember().getNickname(),
+                            review.getMovie().getId()
                     ))
                     .orElseGet(() -> AdminReportResponse.from(report));
         }

@@ -13,6 +13,9 @@ import com.moviepick.domain.community.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.domain.review.entity.Review;
+import com.moviepick.domain.review.exception.ReviewErrorCode;
+import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +36,7 @@ public class CommunityReportService {
     private final PostRepository postRepository;
     private final CommentRepository commentRepository;
     private final MemberRepository memberRepository;
+    private final ReviewRepository reviewRepository;
 
     // 게시글 신고
     @Transactional
@@ -89,6 +93,35 @@ public class CommunityReportService {
                 reporterId,
                 ReportTargetType.COMMENT,
                 comment.getId(),
+                reason,
+                detail
+        );
+    }
+
+    // 리뷰 신고 (B3). 비활성 영화의 리뷰도 신고할 수 있다 (D5 리뷰 좋아요와 같음)
+    @Transactional
+    public CommunityReportResponse reportReview(
+            Long reporterId,
+            Long reviewId,
+            String reason,
+            String detail
+    ) {
+        // 없는 리뷰, 삭제·숨긴 리뷰는 신고할 수 없음
+        Review review = reviewRepository.findById(reviewId)
+                .filter(Review::isVisible)
+                .orElseThrow(() ->
+                        new BusinessException(ReviewErrorCode.REVIEW_NOT_FOUND));
+
+        // 본인이 작성한 리뷰는 신고할 수 없음
+        if (review.isOwnedBy(reporterId)) {
+            throw new BusinessException(
+                    CommonErrorCode.CANNOT_REPORT_OWN_CONTENT);
+        }
+
+        return createReport(
+                reporterId,
+                ReportTargetType.REVIEW,
+                review.getId(),
                 reason,
                 detail
         );
