@@ -1,9 +1,10 @@
 package com.moviepick.domain.member.oauth;
 
 import com.moviepick.domain.member.entity.MemberStatus;
-import com.moviepick.global.config.FrontendUrls;
+import com.moviepick.global.config.FrontendProperties;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -18,6 +19,7 @@ import java.util.Set;
  * reason은 정해진 코드만 붙이고, 예외 문구는 주소에 넣지 않는다.
  */
 @Component
+@RequiredArgsConstructor
 public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
 
     public static final String REASON_MEMBER_SUSPENDED = "MEMBER_SUSPENDED";
@@ -29,6 +31,8 @@ public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
             REASON_MEMBER_WITHDRAWN
     );
 
+    private final FrontendProperties frontendProperties;
+
     @Override
     public void onAuthenticationFailure(
             HttpServletRequest request,
@@ -36,7 +40,7 @@ public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
             AuthenticationException exception
     ) throws IOException {
 
-        response.sendRedirect(FrontendUrls.oauth2Fail(reasonOf(exception)));
+        response.sendRedirect(frontendProperties.oauth2FailUrl(reasonOf(exception)));
     }
 
     // 정지·탈퇴 회원 로그인 차단 예외 (사용자 서비스에서 사용)

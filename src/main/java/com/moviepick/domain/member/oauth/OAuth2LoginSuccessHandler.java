@@ -4,7 +4,7 @@ import com.moviepick.domain.member.entity.AuthProvider;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.repository.MemberRepository;
-import com.moviepick.global.config.FrontendUrls;
+import com.moviepick.global.config.FrontendProperties;
 import com.moviepick.global.security.JwtProvider;
 import com.moviepick.global.security.RefreshTokenService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +29,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
     private final MemberRepository memberRepository;
     private final JwtProvider jwtProvider;
     private final RefreshTokenService refreshTokenService;
+    private final FrontendProperties frontendProperties;
 
     @Override
     public void onAuthenticationSuccess(
@@ -143,7 +144,7 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
 
 
         // 9. React 로그인 완료 페이지로 이동
-        response.sendRedirect(FrontendUrls.OAUTH2_SUCCESS);
+        response.sendRedirect(frontendProperties.oauth2SuccessUrl());
 
     }
 
@@ -153,6 +154,6 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
             String reason
     ) throws IOException {
 
-        response.sendRedirect(FrontendUrls.oauth2Fail(reason));
+        response.sendRedirect(frontendProperties.oauth2FailUrl(reason));
     }
 }

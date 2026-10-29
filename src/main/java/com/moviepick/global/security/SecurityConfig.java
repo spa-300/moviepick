@@ -1,7 +1,9 @@
 
 package com.moviepick.global.security;
 
+import com.moviepick.global.config.FrontendProperties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,10 +27,13 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+// 프론트 주소 설정은 CORS와 소셜 로그인 처리기가 함께 쓰므로 보안 설정과 같이 등록한다
 @Configuration
+@EnableConfigurationProperties(FrontendProperties.class)
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final FrontendProperties frontendProperties;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
@@ -144,14 +149,14 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // React 개발 서버 CORS 설정
+    // 프론트 CORS 설정 (허용 주소는 app.frontend.allowed-origins)
     @Bean
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(
-                List.of("http://localhost:5173")
+                frontendProperties.allowedOrigins()
         );
 
         configuration.setAllowedMethods(

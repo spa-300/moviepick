@@ -4,6 +4,7 @@ import com.moviepick.domain.member.entity.AuthProvider;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.repository.MemberRepository;
+import com.moviepick.global.config.FrontendProperties;
 import com.moviepick.global.security.JwtProvider;
 import com.moviepick.global.security.RefreshTokenService;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +32,9 @@ class OAuth2LoginFailureHandlerTest {
 
     private static final String FAIL_URL = "http://localhost:5173/oauth2/fail?reason=";
 
-    private final OAuth2LoginFailureHandler failureHandler = new OAuth2LoginFailureHandler();
+    private final FrontendProperties frontendProperties = new FrontendProperties(null, null);
+
+    private final OAuth2LoginFailureHandler failureHandler = new OAuth2LoginFailureHandler(frontendProperties);
 
     private String failRedirect(AuthenticationException exception) throws Exception {
         MockHttpServletResponse response = new MockHttpServletResponse();
@@ -68,7 +71,7 @@ class OAuth2LoginFailureHandlerTest {
     void successHandler_suspendedMember_redirectsToFail() throws Exception {
         MemberRepository memberRepository = mock(MemberRepository.class);
         OAuth2LoginSuccessHandler successHandler = new OAuth2LoginSuccessHandler(
-                memberRepository, mock(JwtProvider.class), mock(RefreshTokenService.class));
+                memberRepository, mock(JwtProvider.class), mock(RefreshTokenService.class), frontendProperties);
 
         Member member = Member.createSocial(AuthProvider.KAKAO, "123", null, "카카오회원");
         member.suspend(null);
