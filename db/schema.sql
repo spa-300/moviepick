@@ -3,7 +3,7 @@
 -- 이 파일은 Docker MySQL 컨테이너가 처음 만들어질 때 db/init/00-init.sh가 실행한다.
 -- 바뀐 구조를 반영하려면: docker compose down -v → docker compose up -d
 -- 제약 이름 uk_members_email_provider, uk_post_like_member, uk_comment_like_member,
--- uk_review_likes_member_id_review_id, uk_report_reporter_target 는 코드가 중복 오류를 판별할 때 쓰므로 이름을 바꾸지 않는다.
+-- uk_review_likes_member_id_review_id, uk_report_reporter_target, uk_members_nickname 는 코드가 중복 오류를 판별할 때 쓰므로 이름을 바꾸지 않는다.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -83,7 +83,8 @@ CREATE TABLE `members` (
   `status` enum('ACTIVE','SUSPENDED','WITHDRAWN') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_members_email_provider` (`email`,`provider`),
-  UNIQUE KEY `uk_members_provider_provider_id` (`provider`,`provider_id`)
+  UNIQUE KEY `uk_members_provider_provider_id` (`provider`,`provider_id`),
+  UNIQUE KEY `uk_members_nickname` (`nickname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `movie_genres` (

@@ -21,6 +21,12 @@ public enum MemberErrorCode implements ErrorCode {
             "이미 사용 중인 이메일입니다."
     ),
 
+    // 회원가입·닉네임 수정 - 닉네임 중복
+    DUPLICATE_NICKNAME(
+            HttpStatus.CONFLICT,
+            "이미 사용 중인 닉네임입니다."
+    ),
+
     // 로그인 - 이메일 또는 비밀번호 불일치
     INVALID_CREDENTIALS(
             HttpStatus.UNAUTHORIZED,

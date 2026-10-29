@@ -21,6 +21,10 @@ import java.util.Locale;
                 @UniqueConstraint(
                         name = "uk_members_provider_provider_id",
                         columnNames = {"provider", "provider_id"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_members_nickname",
+                        columnNames = {"nickname"}
                 )
         }
 )
