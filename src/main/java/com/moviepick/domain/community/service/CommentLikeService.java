@@ -88,13 +88,6 @@ public class CommentLikeService {
         return new CommentLikeResponse(false, likeCount);
     }
 
-    // 댓글 좋아요 수 조회
-    public long getLikeCount(Long commentId) {
-        Comment comment = findVisibleComment(commentId);
-
-        return commentLikeRepository.countByCommentId(comment.getId());
-    }
-
     // 특정 회원의 댓글 좋아요 여부 조회
     public boolean isLikedByMember(Long commentId, Long memberId) {
         return commentLikeRepository

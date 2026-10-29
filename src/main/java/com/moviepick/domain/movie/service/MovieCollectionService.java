@@ -28,12 +28,6 @@ public class MovieCollectionService {
     private final TmdbClient tmdbClient;
     private final MovieSaveService movieSaveService;
 
-    // 기존 호출부와의 호환성을 위해 유지
-    public int collectPopularMovies(int requestedPages) {
-        return collectPopularMoviesWithResult(requestedPages)
-                .savedCount();
-    }
-
     // TMDB 인기 영화 수집 및 결과 반환
     public MovieSyncResponse collectPopularMoviesWithResult(
             int requestedPages

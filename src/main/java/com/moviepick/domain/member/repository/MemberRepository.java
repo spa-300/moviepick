@@ -17,12 +17,6 @@ import java.util.Optional;
 
 public interface MemberRepository extends JpaRepository<Member, Long> {
 
-    // 기존 기능: 이메일로 회원 조회
-    Optional<Member> findByEmail(String email);
-
-    // 기존 기능: 이메일 중복 확인
-    boolean existsByEmail(String email);
-
     // 신규 기능: 이메일과 가입 방식으로 회원 조회
     // LOCAL 로그인 시 다른 소셜 계정과 구분
     Optional<Member> findByEmailAndProvider(

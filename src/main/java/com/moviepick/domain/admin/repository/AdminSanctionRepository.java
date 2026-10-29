@@ -15,9 +15,6 @@ public interface AdminSanctionRepository
     // 특정 회원에게 적용된 누적 제재 횟수 조회
     long countByMemberId(Long memberId);
 
-    // 동일 신고가 이미 제재 처리되었는지 확인
-    boolean existsByReportId(Long reportId);
-
     // 동일 게시글 또는 댓글에 이미 제재가 적용되었는지 확인
     @Query("""
             SELECT CASE WHEN COUNT(s) > 0 THEN true ELSE false END

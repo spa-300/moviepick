@@ -137,7 +137,6 @@ class CommentBlindTest {
         assertBlinded(() -> commentService.updateComment(writer.getId(), blindTargetId,
                 new CommentUpdateRequest("고친 내용")));
         assertBlinded(() -> commentService.deleteCommentById(writer.getId(), blindTargetId));
-        assertBlinded(() -> commentService.deleteComment(writer.getId(), post.getId(), blindTargetId));
         assertBlinded(() -> commentLikeService.addLike(reporter.getId(), blindTargetId));
         assertBlinded(() -> commentLikeService.removeLike(liker.getId(), blindTargetId));
         assertThat(statusOf(blindTargetId)).isEqualTo("BLINDED");

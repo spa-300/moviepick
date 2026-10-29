@@ -102,45 +102,6 @@ public class CommentService {
         });
     }
 
-    // 댓글 삭제 (게시글 ID와 댓글 ID 기준)
-    @Transactional
-    public void deleteComment(
-            Long memberId,
-            Long postId,
-            Long commentId
-    ) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() ->
-                        new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND));
-
-        if (!comment.getPost().getId().equals(postId)) {
-            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
-        }
-
-        // 게시글이 공개 상태일 때만 댓글 삭제 허용
-        postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
-                .orElseThrow(() ->
-                        new BusinessException(PostErrorCode.POST_NOT_FOUND));
-
-        // 숨긴 댓글은 작성자 본인도 수정·삭제할 수 없음
-        if (comment.isBlinded()) {
-            throw new BusinessException(CommentErrorCode.COMMENT_BLINDED);
-        }
-
-        if (!comment.getMember().getId().equals(memberId)) {
-            throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
-        }
-
-        if (comment.getStatus() != CommentStatus.VISIBLE) {
-            throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
-        }
-
-        comment.delete();
-
-        // 댓글 수 원자적 감소
-        postRepository.decreaseCommentCount(postId);
-    }
-
     // 댓글 삭제 (댓글 ID 기준)
     @Transactional
     public void deleteCommentById(Long memberId, Long commentId) {

@@ -54,10 +54,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     // ===== 좋아요 수 (원자적 증감) =====
 
     @Modifying(flushAutomatically = true)
-    @Query("update Review r set r.likeCount = r.likeCount + 1 where r.id = :id")
-    int increaseLikeCount(@Param("id") Long id);
-
-    @Modifying(flushAutomatically = true)
     @Query("update Review r set r.likeCount = r.likeCount - 1 where r.id = :id and r.likeCount > 0")
     int decreaseLikeCount(@Param("id") Long id);
 
