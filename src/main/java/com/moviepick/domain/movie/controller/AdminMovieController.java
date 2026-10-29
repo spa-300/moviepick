@@ -6,6 +6,7 @@ import com.moviepick.global.response.ApiResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class AdminMovieController {
 
     // 관리자 영화 동기화 API
     @PostMapping("/sync")
-    public ApiResponse<MovieSyncResponse> syncMovies(
+    public ResponseEntity<ApiResponse<MovieSyncResponse>> syncMovies(
             @RequestParam
             @Min(1)
             @Max(5)
@@ -30,6 +31,6 @@ public class AdminMovieController {
                 movieCollectionService
                         .collectPopularMoviesWithResult(pages);
 
-        return ApiResponse.ok(result);
+        return ResponseEntity.ok(ApiResponse.ok(result));
     }
 }

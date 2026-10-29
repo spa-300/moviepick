@@ -1,6 +1,7 @@
 package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.admin.service.AdminCommentService;
+import com.moviepick.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,11 +18,11 @@ public class AdminCommentController {
 
     // 관리자: 댓글 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteComment(
+    public ResponseEntity<ApiResponse<Void>> deleteComment(
             @PathVariable Long id
     ) {
         adminCommentService.deleteComment(id);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }

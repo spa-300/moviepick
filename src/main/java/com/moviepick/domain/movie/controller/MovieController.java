@@ -7,11 +7,14 @@ import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.auth.LoginMember;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.global.response.ApiResponse;
+import com.moviepick.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -26,7 +29,7 @@ public class MovieController {
 
     // 영화 목록 조회 및 검색
     @GetMapping
-    public Page<MovieListResponse> getMovies(
+    public ResponseEntity<ApiResponse<PageResponse<MovieListResponse>>> getMovies(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
@@ -43,12 +46,15 @@ public class MovieController {
                 Sort.by(Sort.Direction.DESC, "id")
         );
 
-        return movieQueryService.getMovies(keyword, pageable);
+        Page<MovieListResponse> movies =
+                movieQueryService.getMovies(keyword, pageable);
+
+        return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(movies)));
     }
 
     // 영화 상세 조회
     @GetMapping("/{movieId}")
-    public MovieDetailResponse getMovie(
+    public ResponseEntity<ApiResponse<MovieDetailResponse>> getMovie(
             @PathVariable Long movieId,
             @LoginMember(required = false) Long memberId
     ) {
@@ -58,9 +64,11 @@ public class MovieController {
                 .findMyReviewId(memberId, movieId)
                 .orElse(null);
 
-        return movieQueryService.getMovie(
-                movieId,
-                myReviewId
-        );
+        return ResponseEntity.ok(ApiResponse.ok(
+                movieQueryService.getMovie(
+                        movieId,
+                        myReviewId
+                )
+        ));
     }
 }
