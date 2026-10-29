@@ -4,7 +4,7 @@ package com.moviepick.domain.member.service;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.exception.MemberErrorCode;
 import com.moviepick.domain.member.repository.MemberRepository;
-import com.moviepick.global.auth.RefreshTokenService;
+import com.moviepick.global.security.RefreshTokenService;
 import com.moviepick.global.exception.BusinessException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

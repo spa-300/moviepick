@@ -13,7 +13,7 @@ import com.moviepick.domain.review.dto.response.ReviewUpdateResponse;
 import com.moviepick.domain.review.dto.response.ReviewWithMovieResponse;
 import com.moviepick.domain.review.service.ReviewLikeService;
 import com.moviepick.domain.review.service.ReviewService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.response.ApiResponse;
 import com.moviepick.global.response.PageResponse;
 import jakarta.validation.Valid;

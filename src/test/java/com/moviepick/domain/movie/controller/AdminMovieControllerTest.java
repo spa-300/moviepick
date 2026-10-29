@@ -2,7 +2,7 @@ package com.moviepick.domain.movie.controller;
 
 import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
 import com.moviepick.domain.movie.service.MovieCollectionService;
-import com.moviepick.global.auth.JwtAuthenticationFilter;
+import com.moviepick.global.security.JwtAuthenticationFilter;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -4,7 +4,7 @@ import com.moviepick.domain.movie.dto.response.MovieDetailResponse;
 import com.moviepick.domain.movie.dto.response.MovieListResponse;
 import com.moviepick.domain.movie.service.MovieQueryService;
 import com.moviepick.domain.review.service.ReviewService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.global.response.ApiResponse;

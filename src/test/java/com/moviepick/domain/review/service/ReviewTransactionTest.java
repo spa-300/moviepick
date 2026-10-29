@@ -16,7 +16,7 @@ import com.moviepick.domain.review.entity.ReviewStatus;
 import com.moviepick.domain.review.exception.ReviewErrorCode;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
-import com.moviepick.global.auth.RefreshTokenService;
+import com.moviepick.global.security.RefreshTokenService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;
 import java.math.BigDecimal;

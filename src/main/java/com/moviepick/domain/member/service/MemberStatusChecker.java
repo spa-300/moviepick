@@ -2,7 +2,7 @@ package com.moviepick.domain.member.service;
 
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.exception.MemberErrorCode;
-import com.moviepick.global.auth.MemberAccessChecker;
+import com.moviepick.global.security.MemberAccessChecker;
 import com.moviepick.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
