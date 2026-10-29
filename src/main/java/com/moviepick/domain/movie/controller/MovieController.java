@@ -3,7 +3,7 @@ package com.moviepick.domain.movie.controller;
 import com.moviepick.domain.movie.dto.response.MovieDetailResponse;
 import com.moviepick.domain.movie.dto.response.MovieListResponse;
 import com.moviepick.domain.movie.service.MovieQueryService;
-import com.moviepick.domain.review.service.ReviewService;
+import com.moviepick.domain.movie.service.MovieReviewReader;
 import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
@@ -22,8 +22,8 @@ import org.springframework.web.bind.annotation.*;
 public class MovieController {
 
     private final MovieQueryService movieQueryService;
-    // 내 리뷰 ID 조회를 위한 서비스
-    private final ReviewService reviewService;
+    // 내 리뷰 ID 조회 (리뷰 도메인이 구현)
+    private final MovieReviewReader movieReviewReader;
 
     // 영화 목록 조회 및 검색
     @GetMapping
@@ -58,7 +58,7 @@ public class MovieController {
     ) {
         // 로그인 사용자의 해당 영화 리뷰 ID 조회
         // 비로그인 또는 작성한 리뷰가 없다면 null
-        Long myReviewId = reviewService
+        Long myReviewId = movieReviewReader
                 .findMyReviewId(memberId, movieId)
                 .orElse(null);
 

@@ -5,6 +5,7 @@ import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.domain.movie.entity.Movie;
 import com.moviepick.domain.movie.repository.MovieRepository;
 import com.moviepick.domain.movie.service.MovieRatingService;
+import com.moviepick.domain.movie.service.MovieReviewReader;
 import com.moviepick.domain.review.dto.request.ReviewCreateRequest;
 import com.moviepick.domain.review.dto.request.ReviewSort;
 import com.moviepick.domain.review.dto.request.ReviewUpdateRequest;
@@ -39,7 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class ReviewService {
+public class ReviewService implements MovieReviewReader {
 
     // 목록에 나오는 리뷰 상태: 숨긴 리뷰도 자리를 유지한다 (내용·평점은 응답에서 null)
     private static final List<ReviewStatus> LISTED_STATUSES =
@@ -123,9 +124,10 @@ public class ReviewService {
     }
 
     /**
-     * [수정] 추가: 영화 상세의 myReviewId 조립용.
-     * movie 도메인이 review를 의존하지 않도록, 영화 상세는 컨트롤러(조립 클래스)에서 이 메서드를 호출한다.
+     * 영화 상세의 myReviewId (MovieReviewReader 구현).
+     * 영화 컨트롤러는 인터페이스로만 부르므로 movie 도메인은 review를 의존하지 않는다.
      */
+    @Override
     public Optional<Long> findMyReviewId(Long memberId, Long movieId) {
         if (memberId == null) {
             return Optional.empty();
