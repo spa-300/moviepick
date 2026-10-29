@@ -21,7 +21,9 @@ public record ReviewWithMovieResponse(
         LocalDateTime createdAt,
         // 내 리뷰 전용: 영화가 비활성이면 false (수정 버튼·영화 링크를 끌 때 사용)
         @JsonInclude(JsonInclude.Include.NON_NULL) Boolean movieActive,
-        boolean blinded
+        boolean blinded,
+        // 삭제 후 다시 쓴 리뷰면 true ("다시 작성됨" 표시)
+        boolean rewritten
 ) {
     public static ReviewWithMovieResponse withAuthor(Review review) {
         return of(review, AuthorResponse.from(review.getMember()), null);
@@ -44,6 +46,7 @@ public record ReviewWithMovieResponse(
                 review.getLikeCount(),
                 review.getCreatedAt(),
                 movieActive,
-                blinded);
+                blinded,
+                review.isRewritten());
     }
 }

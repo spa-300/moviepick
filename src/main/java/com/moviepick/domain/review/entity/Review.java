@@ -7,6 +7,7 @@ import com.moviepick.global.entity.BaseEntity;
 import com.moviepick.global.exception.BusinessException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -60,6 +61,10 @@ public class Review extends BaseEntity {
     @Column(nullable = false)
     private int likeCount;
 
+    // 삭제한 리뷰를 다시 쓴 시각. 처음 쓴 리뷰는 null ("다시 작성됨" 표시, A7)
+    @Column(name = "rewritten_at")
+    private LocalDateTime rewrittenAt;
+
     public static Review create(Member member, Movie movie, BigDecimal rating, String content, boolean spoiler) {
         validateRating(rating);
         Review review = new Review();
@@ -73,7 +78,7 @@ public class Review extends BaseEntity {
         return review;
     }
 
-    /** 작성자가 삭제한(DELETED) 리뷰를 덮어써서 VISIBLE로 되돌린다. reviewId는 유지된다. */
+    /** 작성자가 삭제한(DELETED) 리뷰를 덮어써서 VISIBLE로 되돌린다. reviewId·작성 시각은 유지, 다시 쓴 시각을 남긴다. */
     public void rewrite(BigDecimal rating, String content, boolean spoiler) {
         if (status != ReviewStatus.DELETED) {
             throw new IllegalStateException("DELETED 상태의 리뷰만 다시 작성할 수 있습니다.");
@@ -84,6 +89,11 @@ public class Review extends BaseEntity {
         this.spoiler = spoiler;
         this.status = ReviewStatus.VISIBLE;
         this.likeCount = 0;
+        this.rewrittenAt = LocalDateTime.now();
+    }
+
+    public boolean isRewritten() {
+        return rewrittenAt != null;
     }
 
     /** 수정. 평점 차이 계산은 호출한 Service가 수정 전 평점을 보관해서 처리한다. */

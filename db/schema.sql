@@ -193,6 +193,7 @@ CREATE TABLE `reviews` (
   `member_id` bigint NOT NULL,
   `movie_id` bigint NOT NULL,
   `updated_at` datetime(6) NOT NULL,
+  `rewritten_at` datetime(6) DEFAULT NULL,
   `content` varchar(1000) NOT NULL,
   `status` enum('BLIND','DELETED','VISIBLE') NOT NULL,
   PRIMARY KEY (`id`),
