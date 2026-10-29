@@ -1,5 +1,5 @@
 
-package com.moviepick.domain.community.dto.request;
+package com.moviepick.domain.report.dto.request;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;

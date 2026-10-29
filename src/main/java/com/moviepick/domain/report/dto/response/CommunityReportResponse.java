@@ -1,6 +1,6 @@
-package com.moviepick.domain.community.dto.response;
+package com.moviepick.domain.report.dto.response;
 
-import com.moviepick.domain.community.entity.CommunityReport;
+import com.moviepick.domain.report.entity.CommunityReport;
 
 public record CommunityReportResponse(
         Long reportId,

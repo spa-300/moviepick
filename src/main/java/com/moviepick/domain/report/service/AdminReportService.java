@@ -1,13 +1,16 @@
 
-package com.moviepick.domain.admin.service;
+package com.moviepick.domain.report.service;
 
-import com.moviepick.domain.admin.dto.request.AdminReportProcessRequest;
-import com.moviepick.domain.admin.dto.response.AdminReportResponse;
-import com.moviepick.domain.admin.entity.AdminSanction;
-import com.moviepick.domain.admin.repository.AdminSanctionRepository;
+import com.moviepick.domain.report.dto.request.AdminReportProcessRequest;
+import com.moviepick.domain.report.dto.response.AdminReportResponse;
+import com.moviepick.domain.report.entity.AdminSanction;
+import com.moviepick.domain.report.repository.AdminSanctionRepository;
 import com.moviepick.domain.community.entity.*;
+import com.moviepick.domain.report.entity.CommunityReport;
+import com.moviepick.domain.report.entity.ReportStatus;
+import com.moviepick.domain.report.entity.ReportTargetType;
 import com.moviepick.domain.community.repository.CommentRepository;
-import com.moviepick.domain.community.repository.CommunityReportRepository;
+import com.moviepick.domain.report.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
@@ -16,7 +19,7 @@ import com.moviepick.domain.review.entity.Review;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.domain.community.exception.ReportErrorCode;
+import com.moviepick.domain.report.exception.ReportErrorCode;
 import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.domain.member.entity.Role;
 import jakarta.persistence.EntityManager;

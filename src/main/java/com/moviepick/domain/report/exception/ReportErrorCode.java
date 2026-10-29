@@ -1,4 +1,4 @@
-package com.moviepick.domain.community.exception;
+package com.moviepick.domain.report.exception;
 
 import com.moviepick.global.exception.ErrorCode;
 import lombok.Getter;

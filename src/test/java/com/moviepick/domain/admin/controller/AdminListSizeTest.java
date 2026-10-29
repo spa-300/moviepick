@@ -1,10 +1,10 @@
 package com.moviepick.domain.admin.controller;
 
 import com.moviepick.domain.member.service.MemberStatusChecker;
-import com.moviepick.domain.admin.repository.AdminSanctionRepository;
-import com.moviepick.domain.admin.service.AdminReportService;
+import com.moviepick.domain.report.repository.AdminSanctionRepository;
+import com.moviepick.domain.report.service.AdminReportService;
 import com.moviepick.domain.community.repository.CommentRepository;
-import com.moviepick.domain.community.repository.CommunityReportRepository;
+import com.moviepick.domain.report.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.member.service.MemberService;

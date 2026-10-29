@@ -1,21 +1,21 @@
-package com.moviepick.domain.admin.service;
+package com.moviepick.domain.report.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.moviepick.domain.admin.dto.request.AdminReportProcessRequest;
-import com.moviepick.domain.admin.repository.AdminSanctionRepository;
-import com.moviepick.domain.community.entity.CommunityReport;
+import com.moviepick.domain.report.dto.request.AdminReportProcessRequest;
+import com.moviepick.domain.report.repository.AdminSanctionRepository;
+import com.moviepick.domain.report.entity.CommunityReport;
 import com.moviepick.domain.community.entity.Post;
-import com.moviepick.domain.community.entity.ReportStatus;
-import com.moviepick.domain.community.entity.ReportTargetType;
-import com.moviepick.domain.community.repository.CommunityReportRepository;
+import com.moviepick.domain.report.entity.ReportStatus;
+import com.moviepick.domain.report.entity.ReportTargetType;
+import com.moviepick.domain.report.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.domain.community.exception.ReportErrorCode;
+import com.moviepick.domain.report.exception.ReportErrorCode;
 import com.moviepick.global.exception.ErrorCode;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

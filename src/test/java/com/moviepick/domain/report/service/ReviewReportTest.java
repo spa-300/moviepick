@@ -1,13 +1,12 @@
-package com.moviepick.domain.community.service;
+package com.moviepick.domain.report.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.moviepick.domain.admin.dto.request.AdminReportProcessRequest;
-import com.moviepick.domain.admin.dto.response.AdminReportResponse;
-import com.moviepick.domain.admin.repository.AdminSanctionRepository;
-import com.moviepick.domain.admin.service.AdminReportService;
-import com.moviepick.domain.community.repository.CommunityReportRepository;
+import com.moviepick.domain.report.dto.request.AdminReportProcessRequest;
+import com.moviepick.domain.report.dto.response.AdminReportResponse;
+import com.moviepick.domain.report.repository.AdminSanctionRepository;
+import com.moviepick.domain.report.repository.CommunityReportRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.member.service.MemberService;
@@ -18,7 +17,7 @@ import com.moviepick.domain.review.dto.request.ReviewCreateRequest;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.domain.review.service.ReviewService;
-import com.moviepick.domain.community.entity.ReportStatus;
+import com.moviepick.domain.report.entity.ReportStatus;
 import com.moviepick.global.security.RefreshTokenService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;

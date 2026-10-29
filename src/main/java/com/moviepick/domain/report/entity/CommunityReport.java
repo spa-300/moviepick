@@ -1,5 +1,5 @@
 
-package com.moviepick.domain.community.entity;
+package com.moviepick.domain.report.entity;
 
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.global.entity.BaseEntity;

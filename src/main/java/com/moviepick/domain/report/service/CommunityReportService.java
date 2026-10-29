@@ -1,15 +1,15 @@
 
-package com.moviepick.domain.community.service;
+package com.moviepick.domain.report.service;
 
-import com.moviepick.domain.community.dto.response.CommunityReportResponse;
+import com.moviepick.domain.report.dto.response.CommunityReportResponse;
 import com.moviepick.domain.community.entity.Comment;
 import com.moviepick.domain.community.entity.CommentStatus;
-import com.moviepick.domain.community.entity.CommunityReport;
+import com.moviepick.domain.report.entity.CommunityReport;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.entity.PostStatus;
-import com.moviepick.domain.community.entity.ReportTargetType;
+import com.moviepick.domain.report.entity.ReportTargetType;
 import com.moviepick.domain.community.repository.CommentRepository;
-import com.moviepick.domain.community.repository.CommunityReportRepository;
+import com.moviepick.domain.report.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
@@ -17,7 +17,7 @@ import com.moviepick.domain.review.entity.Review;
 import com.moviepick.domain.review.exception.ReviewErrorCode;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.domain.community.exception.ReportErrorCode;
+import com.moviepick.domain.report.exception.ReportErrorCode;
 import com.moviepick.global.exception.CommonErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.exception.ConstraintViolationException;

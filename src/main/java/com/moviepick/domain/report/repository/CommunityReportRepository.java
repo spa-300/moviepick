@@ -1,9 +1,9 @@
 
-package com.moviepick.domain.community.repository;
+package com.moviepick.domain.report.repository;
 
-import com.moviepick.domain.community.entity.CommunityReport;
-import com.moviepick.domain.community.entity.ReportStatus;
-import com.moviepick.domain.community.entity.ReportTargetType;
+import com.moviepick.domain.report.entity.CommunityReport;
+import com.moviepick.domain.report.entity.ReportStatus;
+import com.moviepick.domain.report.entity.ReportTargetType;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

@@ -1,4 +1,4 @@
-package com.moviepick.domain.community.entity;
+package com.moviepick.domain.report.entity;
 
 public enum ReportStatus {
     PENDING,

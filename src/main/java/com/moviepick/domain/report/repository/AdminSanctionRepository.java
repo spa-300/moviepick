@@ -1,8 +1,8 @@
 
-package com.moviepick.domain.admin.repository;
+package com.moviepick.domain.report.repository;
 
-import com.moviepick.domain.admin.entity.AdminSanction;
-import com.moviepick.domain.community.entity.ReportTargetType;
+import com.moviepick.domain.report.entity.AdminSanction;
+import com.moviepick.domain.report.entity.ReportTargetType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

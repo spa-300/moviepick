@@ -1,8 +1,8 @@
 package com.moviepick.domain.admin.controller;
 
-import com.moviepick.domain.admin.dto.request.AdminReportProcessRequest;
-import com.moviepick.domain.admin.dto.response.AdminReportResponse;
-import com.moviepick.domain.admin.service.AdminReportService;
+import com.moviepick.domain.report.dto.request.AdminReportProcessRequest;
+import com.moviepick.domain.report.dto.response.AdminReportResponse;
+import com.moviepick.domain.report.service.AdminReportService;
 import com.moviepick.global.response.ApiResponse;
 import com.moviepick.global.response.PageResponse;
 import lombok.RequiredArgsConstructor;

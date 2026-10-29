@@ -1,8 +1,8 @@
-package com.moviepick.domain.admin.dto.response;
+package com.moviepick.domain.report.dto.response;
 
-import com.moviepick.domain.community.entity.CommunityReport;
-import com.moviepick.domain.community.entity.ReportStatus;
-import com.moviepick.domain.community.entity.ReportTargetType;
+import com.moviepick.domain.report.entity.CommunityReport;
+import com.moviepick.domain.report.entity.ReportStatus;
+import com.moviepick.domain.report.entity.ReportTargetType;
 
 public record AdminReportResponse(
         Long reportId,

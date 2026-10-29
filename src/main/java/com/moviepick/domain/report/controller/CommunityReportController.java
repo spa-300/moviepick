@@ -1,9 +1,9 @@
 
-package com.moviepick.domain.community.controller;
+package com.moviepick.domain.report.controller;
 
-import com.moviepick.domain.community.dto.request.CommunityReportRequest;
-import com.moviepick.domain.community.dto.response.CommunityReportResponse;
-import com.moviepick.domain.community.service.CommunityReportService;
+import com.moviepick.domain.report.dto.request.CommunityReportRequest;
+import com.moviepick.domain.report.dto.response.CommunityReportResponse;
+import com.moviepick.domain.report.service.CommunityReportService;
 import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.response.ApiResponse;
 import jakarta.validation.Valid;

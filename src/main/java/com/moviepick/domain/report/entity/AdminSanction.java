@@ -1,6 +1,5 @@
-package com.moviepick.domain.admin.entity;
+package com.moviepick.domain.report.entity;
 
-import com.moviepick.domain.community.entity.CommunityReport;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.global.entity.BaseEntity;
 import jakarta.persistence.*;

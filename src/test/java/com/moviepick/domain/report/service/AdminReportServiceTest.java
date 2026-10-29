@@ -1,18 +1,18 @@
-package com.moviepick.domain.admin.service;
+package com.moviepick.domain.report.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.moviepick.domain.admin.dto.request.AdminReportProcessRequest;
-import com.moviepick.domain.admin.dto.response.AdminReportResponse;
-import com.moviepick.domain.admin.repository.AdminSanctionRepository;
-import com.moviepick.domain.community.entity.CommunityReport;
+import com.moviepick.domain.report.dto.request.AdminReportProcessRequest;
+import com.moviepick.domain.report.dto.response.AdminReportResponse;
+import com.moviepick.domain.report.repository.AdminSanctionRepository;
+import com.moviepick.domain.report.entity.CommunityReport;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.entity.PostStatus;
-import com.moviepick.domain.community.entity.ReportStatus;
-import com.moviepick.domain.community.entity.ReportTargetType;
+import com.moviepick.domain.report.entity.ReportStatus;
+import com.moviepick.domain.report.entity.ReportTargetType;
 import com.moviepick.domain.community.exception.PostErrorCode;
-import com.moviepick.domain.community.repository.CommunityReportRepository;
+import com.moviepick.domain.report.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.community.service.PostLikeService;
 import com.moviepick.domain.community.service.PostService;
