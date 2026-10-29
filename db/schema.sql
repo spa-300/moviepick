@@ -3,7 +3,7 @@
 -- 이 파일은 Docker MySQL 컨테이너가 처음 만들어질 때 db/init/00-init.sh가 실행한다.
 -- 바뀐 구조를 반영하려면: docker compose down -v → docker compose up -d
 -- 제약 이름 uk_members_email_provider, uk_post_like_member, uk_comment_like_member,
--- uk_review_likes_member_id_review_id 는 코드가 중복 오류를 판별할 때 쓰므로 이름을 바꾸지 않는다.
+-- uk_review_likes_member_id_review_id, uk_report_reporter_target, uk_members_nickname 는 코드가 중복 오류를 판별할 때 쓰므로 이름을 바꾸지 않는다.
 
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
@@ -30,7 +30,7 @@ CREATE TABLE `comment` (
   `post_id` bigint NOT NULL,
   `updated_at` datetime(6) NOT NULL,
   `content` text NOT NULL,
-  `status` enum('DELETED','VISIBLE') NOT NULL,
+  `status` enum('BLINDED','DELETED','VISIBLE') NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FKocwtsgphsvfiqmipwu0qqj84l` (`member_id`),
   KEY `FKs1slvnkuemjsq2kj4h3vhx7i1` (`post_id`),
@@ -60,9 +60,11 @@ CREATE TABLE `community_reports` (
   `reason` varchar(20) NOT NULL,
   `detail` varchar(200) DEFAULT NULL,
   `status` enum('ACCEPTED','PENDING','REJECTED') NOT NULL,
-  `target_type` enum('COMMENT','POST') NOT NULL,
+  `target_type` enum('COMMENT','POST','REVIEW') NOT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_report_reporter_target` (`reporter_id`,`target_type`,`target_id`),
   KEY `FK12s2daju3wxyu5g9baq6ij9od` (`reporter_id`),
+  KEY `idx_report_target_status` (`target_type`,`target_id`,`status`),
   CONSTRAINT `FK12s2daju3wxyu5g9baq6ij9od` FOREIGN KEY (`reporter_id`) REFERENCES `members` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
@@ -80,7 +82,9 @@ CREATE TABLE `members` (
   `role` enum('ADMIN','USER') NOT NULL,
   `status` enum('ACTIVE','SUSPENDED','WITHDRAWN') NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_members_email_provider` (`email`,`provider`)
+  UNIQUE KEY `uk_members_email_provider` (`email`,`provider`),
+  UNIQUE KEY `uk_members_provider_provider_id` (`provider`,`provider_id`),
+  UNIQUE KEY `uk_members_nickname` (`nickname`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `movie_genres` (
@@ -189,6 +193,7 @@ CREATE TABLE `reviews` (
   `member_id` bigint NOT NULL,
   `movie_id` bigint NOT NULL,
   `updated_at` datetime(6) NOT NULL,
+  `rewritten_at` datetime(6) DEFAULT NULL,
   `content` varchar(1000) NOT NULL,
   `status` enum('BLIND','DELETED','VISIBLE') NOT NULL,
   PRIMARY KEY (`id`),

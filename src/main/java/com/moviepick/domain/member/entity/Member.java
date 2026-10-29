@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.text.Normalizer;
 import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Getter
 @Entity
@@ -15,11 +17,23 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(
                         name = "uk_members_email_provider",
                         columnNames = {"email", "provider"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_members_provider_provider_id",
+                        columnNames = {"provider", "provider_id"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_members_nickname",
+                        columnNames = {"nickname"}
                 )
         }
 )
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Member extends BaseEntity {
+
+    // 탈퇴 회원의 닉네임·이메일·소셜 키에 쓰는 값. 일반 가입·수정에서는 쓸 수 없다.
+    private static final String WITHDRAWN_PREFIX = "withdrawn_";
+    private static final String WITHDRAWN_EMAIL_DOMAIN = "@withdrawn.local";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -108,9 +122,35 @@ public class Member extends BaseEntity {
         this.suspendedUntil = null;
     }
 
+    // 탈퇴: 이메일·닉네임·소셜 키를 회원번호 기반 값으로 바꿔 같은 값으로 다시 가입할 수 있게 한다 (B5·B6)
     public void withdraw() {
         this.status = MemberStatus.WITHDRAWN;
         this.withdrawnAt = LocalDateTime.now();
+        this.email = WITHDRAWN_PREFIX + this.id + WITHDRAWN_EMAIL_DOMAIN;
+        this.nickname = WITHDRAWN_PREFIX + this.id;
+
+        if (this.provider != AuthProvider.LOCAL) {
+            this.providerId = WITHDRAWN_PREFIX + this.id;
+        }
+    }
+
+    // 탈퇴 회원용 닉네임과 같아질 수 있는 값인지 (가입·수정에서 거절)
+    public static boolean isReservedNickname(String nickname) {
+        return nickname != null
+                && normalizeForReservedCheck(nickname.trim()).startsWith(WITHDRAWN_PREFIX);
+    }
+
+    // 탈퇴 회원용 이메일 도메인인지 (가입에서 거절)
+    public static boolean isReservedEmail(String email) {
+        return email != null
+                && normalizeForReservedCheck(email.trim()).endsWith(WITHDRAWN_EMAIL_DOMAIN);
+    }
+
+    // DB collation(utf8mb4_0900_ai_ci)이 같게 보는 대소문자·악센트·전각 차이를 없앤다
+    private static String normalizeForReservedCheck(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFKD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT);
     }
 
 

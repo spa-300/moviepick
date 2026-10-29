@@ -15,7 +15,9 @@ public record ReviewResponse(
         int likeCount,
         boolean likedByMe,
         LocalDateTime createdAt,
-        boolean blinded
+        boolean blinded,
+        // 삭제 후 다시 쓴 리뷰면 true ("다시 작성됨" 표시)
+        boolean rewritten
 ) {
     public static ReviewResponse of(Review review, boolean likedByMe) {
         boolean blinded = review.getStatus() == ReviewStatus.BLIND;
@@ -29,6 +31,7 @@ public record ReviewResponse(
                 review.getLikeCount(),
                 likedByMe,
                 review.getCreatedAt(),
-                blinded);
+                blinded,
+                review.isRewritten());
     }
 }

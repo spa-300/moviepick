@@ -36,6 +36,12 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
             AuthProvider provider
     );
 
+    // 신규 기능: 닉네임 중복 확인 (DB collation 기준으로 비교)
+    boolean existsByNickname(String nickname);
+
+    // 신규 기능: 자신을 뺀 닉네임 중복 확인 (닉네임 수정)
+    boolean existsByNicknameAndIdNot(String nickname, Long id);
+
     // 기존 기능: 카카오·구글 회원 조회
     Optional<Member> findByProviderAndProviderId(
             AuthProvider provider,

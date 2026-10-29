@@ -1,5 +1,8 @@
 package com.moviepick.domain.review.controller;
 
+import com.moviepick.domain.community.dto.request.CommunityReportRequest;
+import com.moviepick.domain.community.dto.response.CommunityReportResponse;
+import com.moviepick.domain.community.service.CommunityReportService;
 import com.moviepick.domain.review.dto.request.ReviewCreateRequest;
 import com.moviepick.domain.review.dto.request.ReviewSort;
 import com.moviepick.domain.review.dto.request.ReviewUpdateRequest;
@@ -30,6 +33,7 @@ public class ReviewController {
 
     private final ReviewService reviewService;
     private final ReviewLikeService reviewLikeService;
+    private final CommunityReportService communityReportService;
 
     /** 리뷰 작성 */
     @PostMapping("/movies/{movieId}/reviews")
@@ -88,6 +92,17 @@ public class ReviewController {
             @LoginMember Long memberId) {
         reviewService.deleteReview(memberId, reviewId);
         return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    /** 리뷰 신고 (본문·사유는 게시글 신고와 같음) */
+    @PostMapping("/reviews/{reviewId}/reports")
+    public ResponseEntity<ApiResponse<CommunityReportResponse>> reportReview(
+            @PathVariable Long reviewId,
+            @LoginMember Long memberId,
+            @Valid @RequestBody CommunityReportRequest request) {
+        CommunityReportResponse response = communityReportService.reportReview(
+                memberId, reviewId, request.getReason(), request.getDetail());
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(response));
     }
 
     /** 리뷰 좋아요 */

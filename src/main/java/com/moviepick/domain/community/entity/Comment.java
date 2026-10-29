@@ -71,6 +71,20 @@ public class Comment extends BaseEntity {
         this.status = CommentStatus.DELETED;
     }
 
+    // 신고 승인으로 숨김. 공개 중인 댓글만 숨기고, 바뀌었으면 true (이미 삭제·숨김이면 상태 유지)
+    public boolean blind() {
+        if (this.status != CommentStatus.VISIBLE) {
+            return false;
+        }
+
+        this.status = CommentStatus.BLINDED;
+        return true;
+    }
+
+    public boolean isBlinded() {
+        return this.status == CommentStatus.BLINDED;
+    }
+
     // 댓글 수정
     public void update(String content) {
         if (content == null || content.isBlank()) {

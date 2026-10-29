@@ -5,9 +5,11 @@ import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.exception.MemberErrorCode;
+import com.moviepick.domain.member.repository.MemberConstraints;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.moviepick.global.auth.RefreshTokenService;
@@ -67,7 +69,30 @@ public class MemberService {
     ) {
         Member member = getActiveMember(memberId);
 
+        // 다른 회원이 쓰는 닉네임이면 409 (자기 닉네임은 허용)
+        if (memberRepository.existsByNicknameAndIdNot(
+                request.nickname(),
+                memberId
+        )) {
+            throw new BusinessException(
+                    MemberErrorCode.DUPLICATE_NICKNAME
+            );
+        }
+
         member.updateNickname(request.nickname());
+
+        try {
+            // 커밋 때가 아니라 지금 UPDATE를 실행해 동시 수정의 닉네임 UNIQUE 충돌을 여기서 확인
+            memberRepository.saveAndFlush(member);
+        } catch (DataIntegrityViolationException e) {
+            if (MemberConstraints.isDuplicateNickname(e)) {
+                throw new BusinessException(
+                        MemberErrorCode.DUPLICATE_NICKNAME
+                );
+            }
+
+            throw e;
+        }
 
         return MemberResponse.from(member);
     }

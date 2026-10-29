@@ -58,9 +58,11 @@ class ApiCommonResponseTest {
 
     @BeforeEach
     void setUp() {
+        // 테스트마다 회원을 새로 저장하므로 이메일·닉네임(둘 다 유니크)을 매번 다르게 만든다
+        long seq = System.nanoTime();
         user = memberRepository.save(Member.createLocal(
-                "user" + System.nanoTime() + "@test.com", "x", "user"));
-        Member newAdmin = Member.createLocal("admin" + System.nanoTime() + "@test.com", "x", "admin");
+                "user" + seq + "@test.com", "x", "user" + seq));
+        Member newAdmin = Member.createLocal("admin" + seq + "@test.com", "x", "admin" + seq);
         ReflectionTestUtils.setField(newAdmin, "role", Role.ADMIN);
         admin = memberRepository.save(newAdmin);
 

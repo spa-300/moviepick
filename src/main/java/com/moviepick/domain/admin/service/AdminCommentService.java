@@ -30,10 +30,15 @@ public class AdminCommentService {
             throw new BusinessException(CommentErrorCode.COMMENT_NOT_FOUND);
         }
 
-        // 3. 댓글 논리 삭제
+        // 3. 숨긴 댓글은 숨길 때 이미 댓글 수에서 빠졌으므로, 공개 댓글일 때만 줄인다
+        boolean wasVisible = comment.getStatus() == CommentStatus.VISIBLE;
+
+        // 4. 댓글 논리 삭제 (숨긴 댓글도 삭제 허용)
         comment.delete();
 
-        // 4. 게시글 댓글 수 감소
-        comment.getPost().decreaseCommentCount();
+        // 5. 게시글 댓글 수 감소
+        if (wasVisible) {
+            comment.getPost().decreaseCommentCount();
+        }
     }
 }

@@ -8,6 +8,7 @@ import com.moviepick.domain.member.entity.AuthProvider;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.entity.MemberStatus;
 import com.moviepick.domain.member.exception.MemberErrorCode;
+import com.moviepick.domain.member.repository.MemberConstraints;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
@@ -42,15 +43,24 @@ public class AuthService {
             );
         }
 
+        // 닉네임 앞뒤 공백 제거 후 중복 확인
+        String nickname = request.nickname().trim();
+
+        if (memberRepository.existsByNickname(nickname)) {
+            throw new BusinessException(
+                    MemberErrorCode.DUPLICATE_NICKNAME
+            );
+        }
+
         // 비밀번호 암호화
         String encodedPassword =
                 passwordEncoder.encode(request.password());
 
-        // LOCAL 회원 생성: 닉네임 앞뒤 공백 제거
+        // LOCAL 회원 생성
         Member member = Member.createLocal(
                 request.email(),
                 encodedPassword,
-                request.nickname().trim()
+                nickname
         );
 
         try {
@@ -64,6 +74,13 @@ public class AuthService {
             if (isDuplicateEmailConstraintViolation(e)) {
                 throw new BusinessException(
                         MemberErrorCode.DUPLICATE_EMAIL
+                );
+            }
+
+            // 동시 가입으로 닉네임 UNIQUE 제약조건 위반인 경우
+            if (MemberConstraints.isDuplicateNickname(e)) {
+                throw new BusinessException(
+                        MemberErrorCode.DUPLICATE_NICKNAME
                 );
             }
 

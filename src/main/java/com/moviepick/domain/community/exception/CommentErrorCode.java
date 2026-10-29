@@ -33,6 +33,11 @@ public enum CommentErrorCode implements ErrorCode {
     CANNOT_LIKE_OWN_COMMENT(
             HttpStatus.BAD_REQUEST,
             "본인의 댓글에는 좋아요할 수 없습니다."
+    ),
+    // 신고 승인으로 숨긴 댓글의 좋아요·수정·삭제 (작성자 본인 포함)
+    COMMENT_BLINDED(
+            HttpStatus.FORBIDDEN,
+            "관리자에 의해 가려진 댓글입니다."
     );
 
     private final HttpStatus status;

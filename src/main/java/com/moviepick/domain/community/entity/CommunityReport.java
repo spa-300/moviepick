@@ -11,6 +11,12 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(
         name = "community_reports",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_report_reporter_target",
+                        columnNames = {"reporter_id", "target_type", "target_id"}
+                )
+        },
         indexes = {
                 @Index(
                         name = "idx_report_target_status",

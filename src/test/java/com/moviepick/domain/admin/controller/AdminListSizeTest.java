@@ -8,6 +8,8 @@ import com.moviepick.domain.community.repository.CommunityReportRepository;
 import com.moviepick.domain.community.repository.PostRepository;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.member.service.MemberService;
+import com.moviepick.domain.review.repository.ReviewRepository;
+import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.auth.CustomAccessDeniedHandler;
 import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
@@ -72,6 +74,10 @@ class AdminListSizeTest {
     private PostRepository postRepository;
     @MockitoBean
     private CommentRepository commentRepository;
+    @MockitoBean
+    private ReviewRepository reviewRepository;
+    @MockitoBean
+    private ReviewService reviewService;
     @MockitoBean
     private EntityManager entityManager;
 
