@@ -3,11 +3,7 @@ package com.moviepick.global.config;
 
 import com.moviepick.global.auth.CustomAccessDeniedHandler;
 import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
-import com.moviepick.global.auth.CustomOAuth2UserService;
-import com.moviepick.global.auth.CustomOidcUserService;
 import com.moviepick.global.auth.JwtAuthenticationFilter;
-import com.moviepick.global.auth.OAuth2LoginFailureHandler;
-import com.moviepick.global.auth.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +11,14 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -33,9 +36,11 @@ public class SecurityConfig {
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final CustomOidcUserService customOidcUserService;
-    private final OAuth2LoginSuccessHandler oauth2LoginSuccessHandler;
+    // 소셜 로그인 구현(회원 도메인)은 Spring Security 인터페이스로만 받는다
+    private final OAuth2UserService<OAuth2UserRequest, OAuth2User> customOAuth2UserService;
+    private final OAuth2UserService<OidcUserRequest, OidcUser> customOidcUserService;
+    private final AuthenticationSuccessHandler oauth2LoginSuccessHandler;
+    private final AuthenticationFailureHandler oauth2LoginFailureHandler;
 
     // OAuth2 로그인 전용 보안 설정
     @Bean
@@ -69,7 +74,7 @@ public class SecurityConfig {
                         )
                         .successHandler(oauth2LoginSuccessHandler)
                         // 실패 시 백엔드 /login?error 대신 프론트 실패 화면으로 이동
-                        .failureHandler(new OAuth2LoginFailureHandler())
+                        .failureHandler(oauth2LoginFailureHandler)
                 );
 
         return http.build();

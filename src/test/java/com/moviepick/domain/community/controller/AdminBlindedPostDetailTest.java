@@ -1,5 +1,6 @@
 package com.moviepick.domain.community.controller;
 
+import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.community.entity.Post;
 import com.moviepick.domain.community.entity.PostStatus;
 import com.moviepick.domain.community.repository.PostLikeRepository;
@@ -10,6 +11,7 @@ import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.global.auth.CustomAccessDeniedHandler;
+import com.moviepick.global.auth.OAuth2LoginFailureHandler;
 import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
 import com.moviepick.global.auth.CustomOidcUserService;
@@ -56,6 +58,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SecurityConfig.class,
         CustomAuthenticationEntryPoint.class,
         CustomAccessDeniedHandler.class,
+        MemberStatusChecker.class,
+        OAuth2LoginFailureHandler.class,
         PostService.class,
         PostLikeService.class
 })

@@ -7,6 +7,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Set;
@@ -15,6 +16,7 @@ import java.util.Set;
  * 소셜 로그인 실패 시 프론트 실패 화면(/oauth2/fail?reason=코드)으로 이동한다.
  * reason은 정해진 코드만 붙이고, 예외 문구는 주소에 넣지 않는다.
  */
+@Component
 public class OAuth2LoginFailureHandler implements AuthenticationFailureHandler {
 
     public static final String REASON_MEMBER_SUSPENDED = "MEMBER_SUSPENDED";

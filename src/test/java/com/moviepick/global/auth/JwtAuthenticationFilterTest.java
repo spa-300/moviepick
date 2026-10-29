@@ -1,5 +1,6 @@
 package com.moviepick.global.auth;
 
+import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.community.controller.PostController;
 import com.moviepick.domain.community.service.PostService;
 import com.moviepick.domain.member.controller.MemberController;
@@ -59,7 +60,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SecurityConfig.class,
         FilterErrorConfig.class,
         CustomAuthenticationEntryPoint.class,
-        CustomAccessDeniedHandler.class
+        CustomAccessDeniedHandler.class,
+        MemberStatusChecker.class,
+        OAuth2LoginFailureHandler.class
 })
 @ActiveProfiles("test")
 class JwtAuthenticationFilterTest {

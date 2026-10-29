@@ -1,8 +1,5 @@
 package com.moviepick.global.auth;
 
-import com.moviepick.domain.member.entity.Member;
-import com.moviepick.domain.member.exception.MemberErrorCode;
-import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.global.config.PublicEndpoints;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.ErrorCode;
@@ -29,7 +26,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private final MemberService memberService;
+    private final MemberAccessChecker memberAccessChecker;
     private final JwtProvider jwtProvider;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final ObjectMapper objectMapper;
@@ -88,10 +85,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // DB에서 회원 조회 및 ACTIVE 상태 확인
             // 회원 없음·정지·탈퇴(BusinessException)만 인증 실패로 보고,
             // DB 오류 같은 인프라 오류는 그대로 던져 공통 서버 오류(500)로 응답한다
-            Member member;
+            String role;
 
             try {
-                member = memberService.getActiveMember(memberId);
+                role = memberAccessChecker.loadActiveRole(memberId);
             } catch (BusinessException e) {
                 // 정지·탈퇴 회원은 보호 주소에서 로그인·refresh와 같은 403으로 응답
                 reject(request, response, filterChain, publicEndpoint, forbiddenCode(e));
@@ -99,13 +96,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             // DB에 저장된 현재 권한 사용
-            if (member.getRole() == null) {
+            if (role == null) {
                 throw new IllegalArgumentException(
                         "회원 권한 정보가 없습니다."
                 );
             }
-
-            String role = member.getRole().name();
 
             // 8. 인증 객체 생성
             UsernamePasswordAuthenticationToken authentication =
@@ -164,8 +159,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private ErrorCode forbiddenCode(BusinessException e) {
         ErrorCode errorCode = e.getErrorCode();
 
-        if (errorCode == MemberErrorCode.MEMBER_SUSPENDED
-                || errorCode == MemberErrorCode.MEMBER_WITHDRAWN) {
+        if (memberAccessChecker.isForbidden(errorCode)) {
             return errorCode;
         }
 

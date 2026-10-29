@@ -1,5 +1,6 @@
 package com.moviepick.global.auth;
 
+import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.global.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -28,7 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         SecurityConfig.class,
         CustomAuthenticationEntryPoint.class,
-        CustomAccessDeniedHandler.class
+        CustomAccessDeniedHandler.class,
+        MemberStatusChecker.class,
+        OAuth2LoginFailureHandler.class
 })
 @ActiveProfiles("test")
 class OAuth2LoginFailureRedirectTest {

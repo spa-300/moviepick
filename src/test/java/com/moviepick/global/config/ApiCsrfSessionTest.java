@@ -1,5 +1,6 @@
 package com.moviepick.global.config;
 
+import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.member.controller.MemberController;
 import com.moviepick.domain.member.dto.response.LoginResponse;
 import com.moviepick.domain.member.dto.response.MemberResponse;
@@ -11,6 +12,7 @@ import com.moviepick.global.auth.AuthController;
 import com.moviepick.global.auth.AuthService;
 import com.moviepick.global.auth.CsrfController;
 import com.moviepick.global.auth.CustomAccessDeniedHandler;
+import com.moviepick.global.auth.OAuth2LoginFailureHandler;
 import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
 import com.moviepick.global.auth.CustomOidcUserService;
@@ -60,7 +62,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import({
         SecurityConfig.class,
         CustomAuthenticationEntryPoint.class,
-        CustomAccessDeniedHandler.class
+        CustomAccessDeniedHandler.class,
+        MemberStatusChecker.class,
+        OAuth2LoginFailureHandler.class
 })
 @ActiveProfiles("test")
 class ApiCsrfSessionTest {

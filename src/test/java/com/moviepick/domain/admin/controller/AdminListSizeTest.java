@@ -1,5 +1,6 @@
 package com.moviepick.domain.admin.controller;
 
+import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.admin.repository.AdminSanctionRepository;
 import com.moviepick.domain.admin.service.AdminMemberService;
 import com.moviepick.domain.admin.service.AdminReportService;
@@ -11,6 +12,7 @@ import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.domain.review.repository.ReviewRepository;
 import com.moviepick.domain.review.service.ReviewService;
 import com.moviepick.global.auth.CustomAccessDeniedHandler;
+import com.moviepick.global.auth.OAuth2LoginFailureHandler;
 import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
 import com.moviepick.global.auth.CustomOAuth2UserService;
 import com.moviepick.global.auth.CustomOidcUserService;
@@ -53,6 +55,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SecurityConfig.class,
         CustomAuthenticationEntryPoint.class,
         CustomAccessDeniedHandler.class,
+        MemberStatusChecker.class,
+        OAuth2LoginFailureHandler.class,
         AdminReportService.class,
         AdminMemberService.class
 })
