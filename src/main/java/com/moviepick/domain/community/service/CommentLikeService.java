@@ -108,8 +108,18 @@ public class CommentLikeService {
                         new BusinessException(
                                 CommentErrorCode.COMMENT_NOT_FOUND));
 
-        if (comment.getStatus() != CommentStatus.VISIBLE
-                || comment.getPost().getStatus() != PostStatus.VISIBLE) {
+        if (comment.getPost().getStatus() != PostStatus.VISIBLE) {
+            throw new BusinessException(
+                    CommentErrorCode.COMMENT_NOT_FOUND);
+        }
+
+        // 숨긴 댓글은 좋아요·좋아요 취소를 막는다 (목록에 자리가 남아 있으므로 "없음"과 구분)
+        if (comment.isBlinded()) {
+            throw new BusinessException(
+                    CommentErrorCode.COMMENT_BLINDED);
+        }
+
+        if (comment.getStatus() != CommentStatus.VISIBLE) {
             throw new BusinessException(
                     CommentErrorCode.COMMENT_NOT_FOUND);
         }

@@ -30,7 +30,7 @@ CREATE TABLE `comment` (
   `post_id` bigint NOT NULL,
   `updated_at` datetime(6) NOT NULL,
   `content` text NOT NULL,
-  `status` enum('DELETED','VISIBLE') NOT NULL,
+  `status` enum('BLINDED','DELETED','VISIBLE') NOT NULL,
   PRIMARY KEY (`id`),
   KEY `FKocwtsgphsvfiqmipwu0qqj84l` (`member_id`),
   KEY `FKs1slvnkuemjsq2kj4h3vhx7i1` (`post_id`),

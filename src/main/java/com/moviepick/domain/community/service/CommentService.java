@@ -23,10 +23,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class CommentService {
+
+    // 댓글 목록에 나오는 상태
+    private static final List<CommentStatus> LISTED_STATUSES =
+            List.of(CommentStatus.VISIBLE, CommentStatus.BLINDED);
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
@@ -73,9 +79,10 @@ public class CommentService {
                 pageable.getPageSize()
         );
 
+        // 숨긴 댓글도 자리를 유지한다 (B1)
         return commentRepository.findCommentsWithLikeCount(
                 postId,
-                CommentStatus.VISIBLE,
+                LISTED_STATUSES,
                 pageRequest
         ).map(row -> {
             Comment comment = (Comment) row[0];
@@ -115,6 +122,11 @@ public class CommentService {
                 .orElseThrow(() ->
                         new BusinessException(PostErrorCode.POST_NOT_FOUND));
 
+        // 숨긴 댓글은 작성자 본인도 수정·삭제할 수 없음
+        if (comment.isBlinded()) {
+            throw new BusinessException(CommentErrorCode.COMMENT_BLINDED);
+        }
+
         if (!comment.getMember().getId().equals(memberId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
         }
@@ -142,6 +154,11 @@ public class CommentService {
         postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
                         new BusinessException(PostErrorCode.POST_NOT_FOUND));
+
+        // 숨긴 댓글은 작성자 본인도 수정·삭제할 수 없음
+        if (comment.isBlinded()) {
+            throw new BusinessException(CommentErrorCode.COMMENT_BLINDED);
+        }
 
         if (!comment.getMember().getId().equals(memberId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);
@@ -175,6 +192,11 @@ public class CommentService {
         postRepository.findByIdAndStatus(postId, PostStatus.VISIBLE)
                 .orElseThrow(() ->
                         new BusinessException(PostErrorCode.POST_NOT_FOUND));
+
+        // 숨긴 댓글은 작성자 본인도 수정·삭제할 수 없음
+        if (comment.isBlinded()) {
+            throw new BusinessException(CommentErrorCode.COMMENT_BLINDED);
+        }
 
         if (!comment.getMember().getId().equals(memberId)) {
             throw new BusinessException(CommentErrorCode.COMMENT_ACCESS_DENIED);

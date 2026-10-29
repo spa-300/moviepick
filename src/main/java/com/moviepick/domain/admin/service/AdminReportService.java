@@ -160,7 +160,19 @@ public class AdminReportService {
             }
         }
 
-        // TODO: 댓글 신고 승인 시 댓글 숨김 처리
+        // 10-1. 댓글 신고 승인 시 숨김 처리 (B1)
+        // 작성자가 이미 삭제했거나 이미 숨긴 댓글은 상태 유지
+        Long blindedCommentPostId = null;
+
+        if (report.getTargetType() == ReportTargetType.COMMENT) {
+            Comment comment = commentRepository.findById(report.getTargetId())
+                    .orElseThrow(() ->
+                            new BusinessException(CommonErrorCode.NOT_FOUND));
+
+            if (comment.blind()) {
+                blindedCommentPostId = comment.getPost().getId();
+            }
+        }
 
         // 11. 신고 승인
         int updated = communityReportRepository.updateStatusIfPending(
@@ -216,7 +228,13 @@ public class AdminReportService {
             adminSanctionRepository.save(sanction);
         }
 
-        // 14. 처리 결과 반환
+        // 14. 숨긴 댓글은 삭제와 같이 게시글 댓글 수에서 뺀다
+        // 원자적 감소 쿼리는 실행 전에 변경을 반영하고 영속성 컨텍스트를 비우므로 맨 마지막에 실행한다
+        if (blindedCommentPostId != null) {
+            postRepository.decreaseCommentCount(blindedCommentPostId);
+        }
+
+        // 15. 처리 결과 반환
         return createReportResponse(report);
     }
 
