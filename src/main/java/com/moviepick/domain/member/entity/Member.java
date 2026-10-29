@@ -15,6 +15,10 @@ import java.time.LocalDateTime;
                 @UniqueConstraint(
                         name = "uk_members_email_provider",
                         columnNames = {"email", "provider"}
+                ),
+                @UniqueConstraint(
+                        name = "uk_members_provider_provider_id",
+                        columnNames = {"provider", "provider_id"}
                 )
         }
 )

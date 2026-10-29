@@ -82,7 +82,8 @@ CREATE TABLE `members` (
   `role` enum('ADMIN','USER') NOT NULL,
   `status` enum('ACTIVE','SUSPENDED','WITHDRAWN') NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_members_email_provider` (`email`,`provider`)
+  UNIQUE KEY `uk_members_email_provider` (`email`,`provider`),
+  UNIQUE KEY `uk_members_provider_provider_id` (`provider`,`provider_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 CREATE TABLE `movie_genres` (

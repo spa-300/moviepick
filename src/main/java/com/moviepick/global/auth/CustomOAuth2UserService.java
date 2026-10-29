@@ -19,6 +19,7 @@ import java.util.Map;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
+    private final SocialMemberRegistrar socialMemberRegistrar;
 
     @Override
     @Transactional
@@ -64,20 +65,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             nickname = "카카오회원_" + providerId;
         }
 
-        final String finalNickname = nickname;
+        // 기존 회원 조회, 없으면 신규 회원 생성 (동시 첫 로그인은 먼저 만들어진 회원 사용)
+        Long memberId = socialMemberRegistrar.findOrRegister(
+                AuthProvider.KAKAO,
+                providerId,
+                email,
+                nickname
+        );
 
-        Member member = memberRepository
-                .findByProviderAndProviderId(
-                        AuthProvider.KAKAO,
-                        providerId
-                )
-                .orElseGet(() -> memberRepository.save(
-                        Member.createSocial(
-                                AuthProvider.KAKAO,
-                                providerId,
-                                email,
-                                finalNickname
-                        )
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OAuth2AuthenticationException(
+                        "카카오 회원을 찾을 수 없습니다."
                 ));
 
             // 정지 기간이 만료되었다면 자동 해제

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomOidcUserService extends OidcUserService {
 
     private final MemberRepository memberRepository;
+    private final SocialMemberRegistrar socialMemberRegistrar;
 
     @Override
     @Transactional
@@ -51,21 +52,17 @@ public class CustomOidcUserService extends OidcUserService {
             nickname = "구글회원_" + providerId;
         }
 
-        final String finalNickname = nickname;
+        // 기존 회원 조회, 없으면 신규 회원 생성 (동시 첫 로그인은 먼저 만들어진 회원 사용)
+        Long memberId = socialMemberRegistrar.findOrRegister(
+                AuthProvider.GOOGLE,
+                providerId,
+                email,
+                nickname
+        );
 
-        // 기존 회원 조회, 없으면 신규 회원 생성
-        Member member = memberRepository
-                .findByProviderAndProviderId(
-                        AuthProvider.GOOGLE,
-                        providerId
-                )
-                .orElseGet(() -> memberRepository.save(
-                        Member.createSocial(
-                                AuthProvider.GOOGLE,
-                                providerId,
-                                email,
-                                finalNickname
-                        )
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new OAuth2AuthenticationException(
+                        "구글 회원을 찾을 수 없습니다."
                 ));
 
 
