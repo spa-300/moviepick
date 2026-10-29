@@ -12,7 +12,7 @@ import com.moviepick.domain.review.dto.request.ReviewCreateRequest;
 import com.moviepick.domain.review.dto.request.ReviewSort;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
-import com.moviepick.global.auth.RefreshTokenService;
+import com.moviepick.global.security.RefreshTokenService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import java.math.BigDecimal;
 import java.util.ArrayList;

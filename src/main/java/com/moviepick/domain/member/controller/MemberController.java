@@ -3,7 +3,7 @@ package com.moviepick.domain.member.controller;
 import com.moviepick.domain.member.dto.request.MemberUpdateRequest;
 import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.service.MemberService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

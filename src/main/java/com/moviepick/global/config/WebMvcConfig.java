@@ -1,6 +1,6 @@
 package com.moviepick.global.config;
 
-import com.moviepick.global.auth.LoginMemberArgumentResolver;
+import com.moviepick.global.security.LoginMemberArgumentResolver;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

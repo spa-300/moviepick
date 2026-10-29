@@ -10,9 +10,12 @@ import com.moviepick.domain.member.repository.MemberRepository;
 import com.moviepick.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.moviepick.global.auth.RefreshTokenService;
+import com.moviepick.global.security.RefreshTokenService;
 
 @Service
 @RequiredArgsConstructor
@@ -115,5 +118,48 @@ public class MemberService {
     public Member getMember(Long memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    // 관리자: 회원 목록 및 상태별 조회
+    public Page<MemberResponse> getMembers(
+            MemberStatus status,
+            int page,
+            int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Member> members;
+
+        if (status == null) {
+            // 전체 회원 조회
+            members = memberRepository.findAll(pageable);
+        } else {
+            // 회원 상태별 조회
+            members = memberRepository.findByStatus(status, pageable);
+        }
+
+        return members.map(MemberResponse::from);
+    }
+
+    // 관리자: 회원 제재 해제
+    @Transactional
+    public MemberResponse releaseSuspension(Long memberId) {
+
+        // 회원 ID로 조회
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() ->
+                        new BusinessException(MemberErrorCode.MEMBER_NOT_FOUND)
+                );
+
+        // 제재 상태인지 확인
+        if (member.getStatus() != MemberStatus.SUSPENDED) {
+            throw new BusinessException(MemberErrorCode.MEMBER_NOT_SUSPENDED);
+        }
+
+        // SUSPENDED → ACTIVE
+        member.releaseSuspension();
+
+        // 변경된 회원 정보 반환
+        return MemberResponse.from(member);
     }
 }

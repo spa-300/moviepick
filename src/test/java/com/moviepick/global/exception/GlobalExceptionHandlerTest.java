@@ -1,5 +1,6 @@
 package com.moviepick.global.exception;
 
+import com.moviepick.domain.movie.exception.MovieErrorCode;
 import com.moviepick.global.response.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -61,7 +62,7 @@ class GlobalExceptionHandlerTest {
     @DisplayName("도메인 오류 코드의 이름은 enum 이름 그대로")
     void businessException_usesEnumName() {
         ResponseEntity<ApiResponse<Void>> response = handler.handleBusiness(
-                new BusinessException(CommonErrorCode.MOVIE_NOT_FOUND));
+                new BusinessException(MovieErrorCode.MOVIE_NOT_FOUND));
 
         assertThat(response.getStatusCode().value()).isEqualTo(404);
         assertThat(response.getBody().errorCode()).isEqualTo("MOVIE_NOT_FOUND");

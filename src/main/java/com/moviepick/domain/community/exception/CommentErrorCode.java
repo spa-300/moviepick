@@ -18,10 +18,6 @@ public enum CommentErrorCode implements ErrorCode {
             HttpStatus.FORBIDDEN,
             "댓글에 대한 권한이 없습니다."
     ),
-    COMMENT_INVALID_INPUT(
-            HttpStatus.BAD_REQUEST,
-            "댓글 입력값이 올바르지 않습니다."
-    ),
     COMMENT_ALREADY_LIKED(
             HttpStatus.CONFLICT,
             "이미 좋아요를 누른 댓글입니다."

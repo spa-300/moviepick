@@ -16,10 +16,10 @@ import com.moviepick.domain.review.dto.request.ReviewUpdateRequest;
 import com.moviepick.domain.review.dto.response.ReviewWithMovieResponse;
 import com.moviepick.domain.review.repository.ReviewLikeRepository;
 import com.moviepick.domain.review.repository.ReviewRepository;
-import com.moviepick.global.auth.RefreshTokenService;
+import com.moviepick.global.security.RefreshTokenService;
 import com.moviepick.global.config.JpaAuditingConfig;
 import com.moviepick.global.exception.BusinessException;
-import com.moviepick.global.exception.CommonErrorCode;
+import com.moviepick.domain.movie.exception.MovieErrorCode;
 import com.moviepick.global.response.PageResponse;
 import java.math.BigDecimal;
 import java.util.List;
@@ -97,7 +97,7 @@ class InactiveMovieReviewTest {
         assertThatThrownBy(call)
                 .isInstanceOf(BusinessException.class)
                 .extracting(e -> ((BusinessException) e).getErrorCode())
-                .isEqualTo(CommonErrorCode.MOVIE_NOT_FOUND);
+                .isEqualTo(MovieErrorCode.MOVIE_NOT_FOUND);
     }
 
     @Test

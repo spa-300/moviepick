@@ -3,7 +3,7 @@ package com.moviepick.domain.community.controller;
 
 import com.moviepick.domain.community.dto.response.CommentLikeResponse;
 import com.moviepick.domain.community.service.CommentLikeService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

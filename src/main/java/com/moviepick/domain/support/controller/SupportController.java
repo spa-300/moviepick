@@ -4,7 +4,7 @@ import com.moviepick.domain.support.dto.request.SupportCreateRequest;
 import com.moviepick.domain.support.dto.response.SupportConfirmResponse;
 import com.moviepick.domain.support.dto.response.SupportCreateResponse;
 import com.moviepick.domain.support.service.SupportService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

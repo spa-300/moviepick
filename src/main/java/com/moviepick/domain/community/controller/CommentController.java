@@ -6,7 +6,7 @@ import com.moviepick.domain.community.dto.request.CommentUpdateRequest;
 import com.moviepick.domain.community.dto.response.CommentCreateResponse;
 import com.moviepick.domain.community.dto.response.CommentListResponse;
 import com.moviepick.domain.community.service.CommentService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.response.ApiResponse;
 import com.moviepick.global.response.PageResponse;
 import jakarta.validation.Valid;

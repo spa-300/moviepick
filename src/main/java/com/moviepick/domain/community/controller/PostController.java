@@ -8,7 +8,7 @@ import com.moviepick.domain.community.dto.response.PostDetailResponse;
 import com.moviepick.domain.community.dto.response.PostListResponse;
 import com.moviepick.domain.community.dto.response.PostUpdateResponse;
 import com.moviepick.domain.community.service.PostService;
-import com.moviepick.global.auth.LoginMember;
+import com.moviepick.global.security.LoginMember;
 import com.moviepick.global.exception.BusinessException;
 import com.moviepick.global.exception.CommonErrorCode;
 import com.moviepick.global.response.ApiResponse;

@@ -1,15 +1,16 @@
 package com.moviepick.domain.admin.controller;
 
-import com.moviepick.domain.admin.service.AdminReviewService;
+import com.moviepick.domain.member.service.MemberStatusChecker;
 import com.moviepick.domain.member.service.MemberService;
 import com.moviepick.domain.review.service.ReviewService;
-import com.moviepick.global.auth.CustomAccessDeniedHandler;
-import com.moviepick.global.auth.CustomAuthenticationEntryPoint;
-import com.moviepick.global.auth.CustomOAuth2UserService;
-import com.moviepick.global.auth.CustomOidcUserService;
-import com.moviepick.global.auth.JwtProvider;
-import com.moviepick.global.auth.OAuth2LoginSuccessHandler;
-import com.moviepick.global.config.SecurityConfig;
+import com.moviepick.global.security.CustomAccessDeniedHandler;
+import com.moviepick.domain.member.oauth.OAuth2LoginFailureHandler;
+import com.moviepick.global.security.CustomAuthenticationEntryPoint;
+import com.moviepick.domain.member.oauth.CustomOAuth2UserService;
+import com.moviepick.domain.member.oauth.CustomOidcUserService;
+import com.moviepick.global.security.JwtProvider;
+import com.moviepick.domain.member.oauth.OAuth2LoginSuccessHandler;
+import com.moviepick.global.security.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         SecurityConfig.class,
         CustomAuthenticationEntryPoint.class,
         CustomAccessDeniedHandler.class,
-        AdminReviewService.class
+        MemberStatusChecker.class,
+        OAuth2LoginFailureHandler.class
 })
 @ActiveProfiles("test")
 @WithMockUser(roles = "ADMIN")

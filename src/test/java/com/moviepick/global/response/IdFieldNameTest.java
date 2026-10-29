@@ -1,8 +1,8 @@
 package com.moviepick.global.response;
 
-import com.moviepick.domain.admin.dto.response.AdminReportResponse;
-import com.moviepick.domain.community.entity.CommunityReport;
-import com.moviepick.domain.community.entity.ReportTargetType;
+import com.moviepick.domain.report.dto.response.AdminReportResponse;
+import com.moviepick.domain.report.entity.CommunityReport;
+import com.moviepick.domain.report.entity.ReportTargetType;
 import com.moviepick.domain.member.dto.response.MemberResponse;
 import com.moviepick.domain.member.entity.Member;
 import com.moviepick.domain.movie.dto.response.MovieDetailResponse;
