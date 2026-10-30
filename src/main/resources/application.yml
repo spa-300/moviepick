@@ -67,6 +67,11 @@ app:
     allowed-origins: ${APP_FRONTEND_ALLOWED_ORIGINS:http://localhost:5173}
 tmdb:
   access-token: ${TMDB_ACCESS_TOKEN}
+movie:
+  batch:
+    scheduler:
+      enabled: ${MOVIE_BATCH_SCHEDULER_ENABLED:false}
+      cron: "${MOVIE_BATCH_SCHEDULER_CRON:0 0 3 * * *}"
 ---
 # 로컬 개발용: 실행되는 SQL을 로그로 본다
 spring:
