@@ -1,4 +1,32 @@
 package com.moviepick.domain.movie.batch.tasklet;
 
-public class MovieSyncTasklet {
+import com.moviepick.domain.movie.service.MovieCollectionService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.scope.context.ChunkContext;
+import org.springframework.batch.core.step.StepContribution;
+import org.springframework.batch.core.step.tasklet.Tasklet;
+import org.springframework.batch.infrastructure.repeat.RepeatStatus;
+
+@Slf4j
+@RequiredArgsConstructor
+public class MovieSyncTasklet implements Tasklet {
+
+    private final MovieCollectionService movieCollectionService;
+
+    @Override
+    public RepeatStatus execute(
+            StepContribution contribution,
+            ChunkContext chunkContext
+    ) {
+        log.info("TMDB 영화 수집 배치 시작");
+
+        // 기존 TMDB 영화 수집 서비스 호출
+        var result =
+                movieCollectionService.collectPopularMoviesWithResult(1);
+
+        log.info("TMDB 영화 수집 결과: {}", result);
+
+        return RepeatStatus.FINISHED;
+    }
 }
