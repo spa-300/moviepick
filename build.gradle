@@ -32,8 +32,8 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-	// 영화 수집·동기화 Job (영화 파트)
-	implementation 'org.springframework.boot:spring-boot-starter-batch'
+	// Spring Batch + JDBC 실행 이력 관리
+	implementation 'org.springframework.boot:spring-boot-starter-batch-jdbc'
 
 	// Refresh Token을 Redis에 저장하기로 한 경우에만
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
