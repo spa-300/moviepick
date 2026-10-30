@@ -14,6 +14,7 @@ import org.springframework.batch.infrastructure.repeat.RepeatStatus;
 public class MovieSyncTasklet implements Tasklet {
 
     private final MovieCollectionService movieCollectionService;
+    private final int collectPages;
 
     @Override
     public RepeatStatus execute(
@@ -23,7 +24,7 @@ public class MovieSyncTasklet implements Tasklet {
         log.info("TMDB 영화 수집 배치 시작");
 
         // 1. 기존 영화 수집 서비스 호출
-        MovieSyncResponse result = movieCollectionService.collectPopularMoviesWithResult(1);
+        MovieSyncResponse result = movieCollectionService.collectPopularMoviesWithResult(collectPages);
 
         // 2. 수집 결과 로그
         log.info(

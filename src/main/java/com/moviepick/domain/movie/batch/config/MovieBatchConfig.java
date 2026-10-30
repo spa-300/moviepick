@@ -8,6 +8,7 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,9 +18,10 @@ public class MovieBatchConfig {
     // 1. TMDB 영화 수집 Tasklet 등록
     @Bean
     public MovieSyncTasklet movieSyncTasklet(
-            MovieCollectionService movieCollectionService
+            MovieCollectionService movieCollectionService,
+            @Value("${movie.batch.collect-pages:1}") int collectPages
     ) {
-        return new MovieSyncTasklet(movieCollectionService);
+        return new MovieSyncTasklet(movieCollectionService, collectPages);
     }
 
     // 2. 영화 수집 Step 등록
