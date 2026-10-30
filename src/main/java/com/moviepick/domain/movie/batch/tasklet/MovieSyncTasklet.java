@@ -1,5 +1,6 @@
 package com.moviepick.domain.movie.batch.tasklet;
 
+import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
 import com.moviepick.domain.movie.service.MovieCollectionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +22,30 @@ public class MovieSyncTasklet implements Tasklet {
     ) {
         log.info("TMDB 영화 수집 배치 시작");
 
-        // 기존 TMDB 영화 수집 서비스 호출
-        var result =
-                movieCollectionService.collectPopularMoviesWithResult(1);
+        // 1. 기존 영화 수집 서비스 호출
+        MovieSyncResponse result = movieCollectionService.collectPopularMoviesWithResult(1);
 
-        log.info("TMDB 영화 수집 결과: {}", result);
+        // 2. 수집 결과 로그
+        log.info(
+                "영화 수집 결과: 저장={}, 실패={}, 중단 페이지={}, 사유={}",
+                result.savedCount(),
+                result.failedCount(),
+                result.stoppedPage(),
+                result.stopReason()
+        );
+
+        // 3. 일부 실패 또는 중단이 발생하면 Batch 실패 처리
+        if (result.failedCount() > 0
+                || result.stoppedPage() != null
+                || result.stopReason() != null) {
+
+            throw new IllegalStateException(
+                    "TMDB 영화 수집 실패: " + result
+            );
+        }
+
+        // 4. 정상적으로 수집된 경우
+        log.info("TMDB 영화 수집 배치 완료");
 
         return RepeatStatus.FINISHED;
     }

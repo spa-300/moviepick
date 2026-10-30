@@ -1,35 +1,27 @@
+
 package com.moviepick.domain.movie.batch;
 
+import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
+import com.moviepick.domain.movie.service.MovieCollectionService;
 import org.junit.jupiter.api.Test;
-
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.JobParameters;
 import org.springframework.batch.core.job.parameters.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobOperator;
-
-import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import javax.sql.DataSource;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class MovieBatchRunTest {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private DataSource dataSource;
-
-    @Autowired
-    private JobRepository jobRepository;
 
     @Autowired
     private JobOperator jobOperator;
@@ -38,37 +30,50 @@ class MovieBatchRunTest {
     @Qualifier("movieSyncJob")
     private Job movieSyncJob;
 
-    @Test
-    void movieSyncJobTest() throws Exception {
+    // 실제 TMDB 수집 서비스 대신 Mock 객체 사용
+    @MockitoBean
+    private MovieCollectionService movieCollectionService;
 
-        // 1. 실행할 작업에 고유한 파라미터 부여
-        JobParameters parameters = new JobParametersBuilder()
-                .addLong("run.id", System.currentTimeMillis())
+    // 매 테스트마다 고유한 실행 파라미터 생성
+    private JobParameters createJobParameters() {
+        return new JobParametersBuilder()
+                .addString("run.id", UUID.randomUUID().toString())
                 .toJobParameters();
+    }
 
-        // 2. 배치 작업 실행
+    @Test
+    void movieSyncJobSuccess() throws Exception {
+
+        // 1. 영화 20편 수집 성공 상황 가정
+        when(movieCollectionService.collectPopularMoviesWithResult(1))
+                .thenReturn(new MovieSyncResponse(1, 20, 0));
+
+        // 2. 실제 Spring Batch Job 실행
         JobExecution execution =
-                jobOperator.start(movieSyncJob, parameters);
+                jobOperator.start(movieSyncJob, createJobParameters());
 
-        // 3. 정상 종료 여부 검증
+        // 3. Job이 성공했는지 확인
         assertEquals(BatchStatus.COMPLETED, execution.getStatus());
 
-        System.out.println("JobRepository = "
-                + jobRepository.getClass().getName());
+        verify(movieCollectionService)
+                .collectPopularMoviesWithResult(1);
+    }
 
-        try (var connection = dataSource.getConnection()) {
-            System.out.println("DB URL = "
-                    + connection.getMetaData().getURL());
+    @Test
+    void movieSyncJobFail() throws Exception {
 
-            System.out.println("DB NAME = "
-                    + connection.getCatalog());
-        }
+        // 1. 영화 18편 성공, 2편 실패 상황 가정
+        when(movieCollectionService.collectPopularMoviesWithResult(1))
+                .thenReturn(new MovieSyncResponse(1, 18, 2));
 
-        Integer count = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM BATCH_JOB_EXECUTION",
-                Integer.class
-        );
+        // 2. 실제 Spring Batch Job 실행
+        JobExecution execution =
+                jobOperator.start(movieSyncJob, createJobParameters());
 
-        System.out.println("Batch 실행 기록 수 = " + count);
+        // 3. Job이 실패로 기록됐는지 확인
+        assertEquals(BatchStatus.FAILED, execution.getStatus());
+
+        verify(movieCollectionService)
+                .collectPopularMoviesWithResult(1);
     }
 }
