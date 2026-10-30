@@ -1,4 +1,3 @@
-
 package com.moviepick.domain.movie.batch;
 
 import com.moviepick.domain.movie.dto.response.MovieSyncResponse;
