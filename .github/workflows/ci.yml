@@ -6,6 +6,10 @@ on:
   push:
     branches: [dev, main]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,3 +25,15 @@ jobs:
 
       - name: Build
         run: ./gradlew build
+
+      - name: 커버리지 PR 댓글
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: madrapps/jacoco-report@v1.8.0
+        with:
+          paths: ${{ github.workspace }}/build/reports/jacoco/test/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: 테스트 커버리지
+          update-comment: true
+          min-coverage-overall: 50
+          min-coverage-changed-lines: 50
