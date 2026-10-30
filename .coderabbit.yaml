@@ -1,0 +1,104 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# MoviePick 백엔드 (moviepick 저장소 루트에 위치)
+
+language: "ko-KR"
+tone_instructions: "한국어 존댓말로 간결하게 리뷰해 주세요. 지적할 때는 왜 문제인지 근거와 영향을 함께 설명해 주세요."
+early_access: false
+
+reviews:
+  profile: "chill"                  # 중요한 문제 위주. 더 엄격하게 원하면 "assertive"
+  request_changes_workflow: false   # 리뷰가 머지를 막지 않음
+  high_level_summary: true          # PR 변경 요약
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: true           # 변경된 흐름을 다이어그램으로 설명
+
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+      - dev
+
+  path_filters:
+    - "!build/**"
+    - "!.gradle/**"
+    - "!.idea/**"
+    - "!gradle/wrapper/**"
+    - "!**/*.iml"
+    - "!HELP.md"
+
+  path_instructions:
+    # ---------- 공통 계층 ----------
+    - path: "src/main/java/**/controller/**"
+      instructions: |
+        - 요청 DTO에 @Valid 검증이 있는지, HTTP 상태 코드가 적절한지 확인해 주세요.
+        - 응답은 ApiResponse로 감싸고, 목록은 PageResponse를 쓰는지 확인해 주세요.
+        - 비즈니스 로직이 컨트롤러에 들어가 있지 않은지 확인해 주세요.
+    - path: "src/main/java/**/dto/**"
+      instructions: |
+        - 응답 필드에 단독 "id"를 쓰지 않고 movieId, memberId처럼 대상 이름을 붙이는지 확인해 주세요.
+          (IdFieldNameTest 규칙이며, 프론트엔드 연동 버그의 원인이었습니다.)
+        - 요청 DTO의 검증 길이·범위가 DB 컬럼 크기와 맞는지 확인해 주세요.
+    - path: "src/main/java/**/service/**"
+      instructions: |
+        - @Transactional 경계와 readOnly 사용이 적절한지 확인해 주세요.
+        - 외부 API(TMDB, PortOne, LLM) 호출이 DB 트랜잭션 안에 들어가 있지 않은지 확인해 주세요.
+        - N+1 쿼리 가능성과 동시 요청 시 race condition을 중점적으로 봐 주세요.
+        - 예외가 공통 에러 코드 체계를 따르는지 확인해 주세요.
+    - path: "src/main/java/**/entity/**"
+      instructions: |
+        - 컬럼 이름·타입·길이가 db/schema.sql과 일치하는지 확인해 주세요. (ddl-auto: validate)
+        - 상태 변경이 Entity 메서드를 통해 이루어지는지 확인해 주세요.
+
+    # ---------- 도메인별 ----------
+    - path: "src/main/java/**/domain/{support,payment}/**"
+      instructions: |
+        - 결제 금액·상품은 클라이언트 값이 아니라 서버가 결정하는지 확인해 주세요.
+        - 결제 확정은 PortOne 서버 조회로 검증하는지, CREATED -> PAID 조건부 변경으로 중복 반영을 막는지 확인해 주세요.
+        - 웹훅은 서명 검증 후 처리하고, 같은 웹훅이 여러 번 와도 한 번만 반영되는지 확인해 주세요.
+        - PAID 변경과 크레딧 충전, 취소와 크레딧 회수가 같은 트랜잭션인지 확인해 주세요.
+    - path: "src/main/java/**/domain/ai/**"
+      instructions: |
+        - 크레딧 차감 후 실패 시 복구(RESTORE)가 누락되지 않는지 확인해 주세요.
+        - Idempotency-Key로 같은 요청의 중복 차감을 막는지 확인해 주세요.
+        - 지갑 잔액 변경과 원장 기록이 함께 이루어지는지, 잔액이 음수가 될 수 없는지 확인해 주세요.
+        - LLM이 만든 영화 ID를 그대로 쓰지 않고 DB에 존재하는 영화만 응답하는지 확인해 주세요.
+    - path: "src/main/java/**/domain/review/**"
+      instructions: |
+        - 리뷰 작성·수정·삭제·숨김 시 movies.rating_sum, review_count가 함께 갱신되는지 확인해 주세요.
+        - 영화와 리뷰를 잠그는 순서가 다른 메서드와 같은지 확인해 주세요. (순서가 다르면 교착 위험)
+    - path: "src/main/java/**/domain/report/**"
+      instructions: |
+        - 신고 승인 시 대상 숨김, 제재 처리, 처리자·처리 시각 기록이 빠지지 않는지 확인해 주세요.
+        - 같은 콘텐츠로 제재가 중복되지 않는지, 동시 승인 시 안전한지 확인해 주세요.
+
+    # ---------- 보안 ----------
+    - path: "src/main/java/**/global/security/**"
+      instructions: |
+        - 공개 경로(permitAll) 변경이 의도치 않게 엔드포인트를 노출하지 않는지 확인해 주세요.
+        - 토큰 검증, Refresh 쿠키 속성(HttpOnly, Secure, SameSite), CSRF 예외 범위를 확인해 주세요.
+        - 토큰이나 비밀번호 같은 민감 정보가 로그에 남지 않는지 확인해 주세요.
+    - path: "src/main/java/**/domain/member/**"
+      instructions: |
+        - 비밀번호 해시, 탈퇴·정지 회원 처리, 소셜 로그인 가입 충돌 처리를 확인해 주세요.
+
+    # ---------- 그 외 ----------
+    - path: "src/test/**"
+      instructions: |
+        - 실행만 하고 결과를 검증(assert)하지 않는 테스트가 없는지 확인해 주세요.
+        - 실패·경계 케이스가 포함되어 있는지 확인해 주세요.
+    - path: "db/**/*.sql"
+      instructions: |
+        - 테이블·컬럼 변경이 Entity와 일치하는지 확인해 주세요.
+        - 스키마 변경 시 팀원 모두 Docker DB를 다시 만들어야 하므로 PR 설명에 안내가 있는지 확인해 주세요.
+    - path: "**/*.yml"
+      instructions: |
+        - 비밀번호, 시크릿 키 같은 민감 정보가 하드코딩되어 있지 않은지 확인해 주세요.
+    - path: ".github/workflows/**"
+      instructions: |
+        - secrets 노출, 과도한 permissions, 버전이 고정되지 않은 서드파티 액션 사용을 확인해 주세요.
+
+chat:
+  auto_reply: true
