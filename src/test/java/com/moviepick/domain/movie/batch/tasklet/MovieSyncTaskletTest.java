@@ -19,7 +19,7 @@ class MovieSyncTaskletTest {
                 mock(MovieCollectionService.class);
 
         MovieSyncTasklet tasklet =
-                new MovieSyncTasklet(collectionService);
+                new MovieSyncTasklet(collectionService, 1);
 
         // 20편 성공, 0편 실패했다고 가정
         when(collectionService.collectPopularMoviesWithResult(1))
@@ -43,7 +43,7 @@ class MovieSyncTaskletTest {
                 mock(MovieCollectionService.class);
 
         MovieSyncTasklet tasklet =
-                new MovieSyncTasklet(collectionService);
+                new MovieSyncTasklet(collectionService, 1);
 
         // 18편 성공, 2편 실패했다고 가정
         when(collectionService.collectPopularMoviesWithResult(1))
@@ -57,5 +57,31 @@ class MovieSyncTaskletTest {
 
         verify(collectionService)
                 .collectPopularMoviesWithResult(1);
+    }
+
+    // 3. 설정한 페이지 수만큼 영화 수집을 요청하는지 테스트
+    @Test
+    void movieSyncCollectsConfiguredPages() {
+
+        // given
+        MovieCollectionService collectionService =
+                mock(MovieCollectionService.class);
+
+        MovieSyncTasklet tasklet =
+                new MovieSyncTasklet(collectionService, 3);
+
+        when(collectionService.collectPopularMoviesWithResult(3))
+                .thenReturn(new MovieSyncResponse(3, 60, 0));
+
+        // when
+        RepeatStatus result = tasklet.execute(null, null);
+
+        // then
+        assertEquals(RepeatStatus.FINISHED, result);
+
+        verify(collectionService, times(1))
+                .collectPopularMoviesWithResult(3);
+
+        verifyNoMoreInteractions(collectionService);
     }
 }

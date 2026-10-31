@@ -69,6 +69,7 @@ tmdb:
   access-token: ${TMDB_ACCESS_TOKEN}
 movie:
   batch:
+    collect-pages: ${MOVIE_BATCH_COLLECT_PAGES:1}
     scheduler:
       enabled: ${MOVIE_BATCH_SCHEDULER_ENABLED:false}
       cron: "${MOVIE_BATCH_SCHEDULER_CRON:0 0 3 * * *}"
